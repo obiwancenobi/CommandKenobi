@@ -41,6 +41,7 @@ This repository exists to:
 |---------|-------------|-------|
 | `/commit-all` | Create a conventional commit from all changes with user approval | build |
 | `/commit-staged` | Create a conventional commit from staged changes with user approval | build |
+| `/create-pr` | Commit all changes, push to remote, and create a pull request with user approval | build |
 | `/push-all` | Commit all changes and push to remote with user approval | build |
 | `/push-staged` | Commit staged changes and push to remote with user approval | build |
 | `/add-documentation` | Add comprehensive documentation for code/features | build |
@@ -243,6 +244,7 @@ opencode-commands/
 │   ├── commands/
 │   │   ├── commit-all.md
 │   │   ├── commit-staged.md
+│   │   ├── create-pr.md
 │   │   ├── push-all.md
 │   │   ├── push-staged.md
 │   │   ├── add-documentation.md
@@ -283,6 +285,17 @@ This repository has no runtime dependencies. It is a documentation-only reposito
 4. Generate conventional commit message
 5. Get user approval
 6. Commit and push to remote
+
+### Creating a PR with `/create-pr`
+
+1. Execute `/create-pr` command
+2. AI assistant runs pre-flight checks and stages all changes
+3. Review generated commit message
+4. Accept or suggest alternatives
+5. Changes are committed and pushed
+6. AI generates PR title and body from changes
+7. If `gh` is available, creates PR via CLI; otherwise opens browser for manual creation
+8. Get confirmation with PR URL
 
 ### Planning a Feature with `/plan-interview`
 

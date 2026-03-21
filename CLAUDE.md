@@ -14,6 +14,7 @@ opencode-commands/
 │   ├── commands/          # Command specification files (*.md)
 │   │   ├── commit-all.md
 │   │   ├── commit-staged.md
+│   │   ├── create-pr.md
 │   │   ├── push-all.md
 │   │   ├── push-staged.md
 │   │   ├── add-documentation.md

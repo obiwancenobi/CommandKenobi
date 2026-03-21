@@ -49,7 +49,7 @@ grep -n "## " "$f" | head -5 && echo "Sections OK"
 ### File Structure
 - Command files: Markdown format with YAML frontmatter
 - Required frontmatter: `description`, `agent`
-- Naming: `<action>-<target>.md` (e.g., `commit-all.md`, `push-staged.md`)
+- Naming: `<action>-<target>.md` (e.g., `commit-all.md`, `push-staged.md`, `create-pr.md`)
 
 ### Frontmatter Format
 ```yaml
