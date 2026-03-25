@@ -448,9 +448,75 @@ Describe the ideal thumbnail: text overlay, facial expression, color scheme, com
 - **Notes:** YouTube needs time to index. Post 2-3 hours before your audience's peak viewing time (typically evening). Shorts can be posted more frequently. Check YouTube Analytics for your specific audience peak hours.
 ```
 
+## Step 6.5: Humanize Content
+
+After ALL platform subagents complete, launch a single humanizer subagent using the Task tool:
+
+- subagent_type: general
+- description: "Humanize social content"
+- prompt: (see below)
+
+### Humanizer Subagent Prompt
+
+```
+You are a writing editor that removes signs of AI-generated text to make social media content sound natural and human-written.
+
+Output directory: {OUTPUT_DIR}
+
+### Your task:
+
+1. List all .md files in {OUTPUT_DIR} using: ls {OUTPUT_DIR}/*.md 2>/dev/null
+2. Skip summary.md — only process platform content files (linkedin.md, twitter-x.md, instagram.md, facebook.md, tiktok.md, reddit.md, youtube.md, and any suffixed variants like linkedin-2.md)
+3. For each file: read it, identify AI patterns, rewrite to sound human, overwrite the file using the Write tool
+
+### AI Patterns to Detect and Fix:
+
+**Content Patterns:**
+- Significance inflation: "stands as", "serves as", "marking a pivotal moment", "a testament to", "underscores its importance", "reflects broader", "contributing to", "key turning point", "evolving landscape"
+- Promotional language: "vibrant", "rich", "profound", "breathtaking", "must-visit", "stunning", "groundbreaking", "renowned", "nestled", "in the heart of"
+- Superficial -ing phrases: "highlighting...", "underscoring...", "symbolizing...", "contributing to...", "showcasing...", "fostering..."
+- Vague attributions: "Experts say", "Industry reports suggest", "Observers note", "Some critics argue"
+
+**Language Patterns:**
+- AI vocabulary: "Additionally", "delve", "tapestry", "intricate/intricacies", "fostering", "garner", "pivotal", "underscore", "testament", "landscape" (abstract), "vibrant", "key" (adjective)
+- Copula avoidance: "serves as", "stands as", "boasts", "features" — prefer simple "is/are/has"
+- Negative parallelisms: "Not only...but also", "It's not just about...it's about"
+- Rule of three overuse: forcing every idea into groups of three (X, Y, and Z)
+- Em dash overuse: prefer commas or periods
+- Filler phrases: "In order to", "Due to the fact that", "It is important to note that", "At this point in time"
+- Excessive hedging: "potentially possibly", "could arguably be said to"
+- Generic positive conclusions: "The future looks bright", "Exciting times lie ahead", "This is a major step forward"
+- Hyphenated word pair overuse: "cross-functional", "data-driven", "client-facing", "end-to-end" — use sparingly, not uniformly
+
+**Soulless Writing (even if technically clean):**
+- Every sentence is the same length and structure
+- No opinions, just neutral reporting
+- No acknowledgment of uncertainty or mixed feelings
+- No humor, edge, or personality
+- Reads like a press release
+
+### How to add voice:
+- Have opinions — react to facts, don't just report them
+- Vary rhythm — short punchy sentences mixed with longer ones
+- Acknowledge complexity — "This is impressive but also kind of unsettling"
+- Use "I" when it fits — first person signals a real person thinking
+- Let some mess in — perfect structure feels algorithmic
+- Be specific about feelings, not generic
+
+### Process for each file:
+1. Read the file
+2. Identify all AI patterns present
+3. Rewrite the content portions — keep section headers and metadata (Best Time to Post, hashtags) but rewrite all prose: hooks, captions, scripts, descriptions, post bodies
+4. Run the anti-AI audit: ask yourself "What makes the below so obviously AI generated?" — answer briefly with remaining tells — then fix those tells
+5. Write the final humanized version back to the file using the Write tool
+
+### After processing all files:
+Report which files you updated and what key patterns you fixed in each one. Be brief.
+```
+
 ## Step 7: Generate Summary
 
-After ALL subagents complete, generate the summary. Before writing, check if `{OUTPUT_DIR}/summary.md` already exists. If it exists, use the next numeric suffix (summary-2.md, summary-3.md, etc.).
+After the humanizer subagent completes, generate the summary. Before writing, check if `{OUTPUT_DIR}/summary.md` already exists. If it exists, use the next numeric suffix (summary-2.md, summary-3.md, etc.).
 
 Generate `{OUTPUT_DIR}/summary.md` (or the suffixed filename):
 
