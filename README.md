@@ -62,7 +62,7 @@ This repository exists to:
 
 ### Available Commands
 
-All 8 commands are available across OpenCode, Claude Code, and Kilo Code.
+All 9 commands are available across OpenCode, Claude Code, and Kilo Code.
 
 | Command | Description | OpenCode | Claude Code | Kilo Code |
 |---------|-------------|:--------:|:-----------:|:---------:|
@@ -74,6 +74,7 @@ All 8 commands are available across OpenCode, Claude Code, and Kilo Code.
 | `/add-documentation` | Add comprehensive documentation for code/features | `.opencode/` | `.claude/` | `.kilocode/` |
 | `/plan-interview` | Interview to expand a spec from prompt | `.opencode/` | `.claude/` | `.kilocode/` |
 | `/generate-social-content` | Generate social media content across platforms with parallel subagents | `.opencode/` | `.claude/` | `.kilocode/` |
+| `/generate-onboarding` | Generate a guided code tour as a standalone HTML file for project onboarding | `.opencode/` | `.claude/` | `.kilocode/` |
 
 ### Command File Structure
 
@@ -385,7 +386,8 @@ CommandKenobi/
 │       ├── push-staged.md
 │       ├── add-documentation.md
 │       ├── plan-interview.md
-│       └── generate-social-content.md
+│       ├── generate-social-content.md
+│       └── generate-onboarding.md
 ├── .claude/
 │   └── commands/              # Claude Code format (allowed-tools + inline prompts)
 │       ├── commit-all.md
@@ -395,7 +397,8 @@ CommandKenobi/
 │       ├── push-staged.md
 │       ├── add-documentation.md
 │       ├── plan-interview.md
-│       └── generate-social-content.md
+│       ├── generate-social-content.md
+│       └── generate-onboarding.md
 ├── .kilocode/
 │   └── workflows/             # Kilo Code format (plain markdown + ask_user)
 │       ├── commit-all.md
@@ -405,11 +408,13 @@ CommandKenobi/
 │       ├── push-staged.md
 │       ├── add-documentation.md
 │       ├── plan-interview.md
-│       └── generate-social-content.md
+│       ├── generate-social-content.md
+│       └── generate-onboarding.md
 ├── docs/
 │   ├── git-commit-workflow.md
 │   ├── create-pr-workflow.md
-│   └── generate-social-content-diagram.md
+│   ├── generate-social-content-diagram.md
+│   └── generate-onboarding-workflow.md
 ├── AGENTS.md
 ├── CLAUDE.md
 └── README.md
@@ -422,6 +427,7 @@ CommandKenobi/
 | [Git Commit Workflow](docs/git-commit-workflow.md) | Flow for `/commit-all`, `/commit-staged`, `/push-all`, `/push-staged` |
 | [Create PR Workflow](docs/create-pr-workflow.md) | Flow for `/create-pr` including gh CLI fallback |
 | [Generate Social Content](docs/generate-social-content-diagram.md) | Parallel subagent architecture for `/generate-social-content` |
+| [Generate Onboarding](docs/generate-onboarding-workflow.md) | Code tour generation pipeline for `/generate-onboarding` |
 
 ### Design Decisions
 
@@ -488,6 +494,18 @@ This repository has no runtime dependencies. It is a documentation-only reposito
 **Output:** `social-content/<topic-slug>/` containing per-platform content files and a posting calendar.
 
 [See workflow diagram](docs/generate-social-content-diagram.md) for the full flow and subagent architecture.
+
+### Generating Onboarding Tour with `/generate-onboarding`
+
+1. Execute `/generate-onboarding` (or with a focus area: `/generate-onboarding authentication flow`)
+2. AI assistant scans project structure and identifies languages, frameworks, entry points
+3. Launches 5 parallel research subagents (execution flow, data flow, config, patterns, dependencies)
+4. Each subagent traces its area and returns findings with file:line references
+5. Tour builder generates a self-contained HTML file with Mermaid diagrams
+
+**Output:** `docs/onboarding.html` (or `docs/onboarding-<focus>.html` if a focus area is provided, e.g., `docs/onboarding-authentication-flow.html`) — open in any browser for a guided code tour with syntax-highlighted code and diagrams.
+
+[See workflow diagram](docs/generate-onboarding-workflow.md) for the full pipeline.
 
 ## Best Practices
 

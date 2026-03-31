@@ -19,7 +19,8 @@ CommandKenobi/
 │       ├── push-staged.md
 │       ├── add-documentation.md
 │       ├── plan-interview.md
-│       └── generate-social-content.md
+│       ├── generate-social-content.md
+│       └── generate-onboarding.md
 ├── .claude/
 │   └── commands/              # Claude Code format (you are here)
 │       ├── commit-all.md
@@ -29,7 +30,8 @@ CommandKenobi/
 │       ├── push-staged.md
 │       ├── add-documentation.md
 │       ├── plan-interview.md
-│       └── generate-social-content.md
+│       ├── generate-social-content.md
+│       └── generate-onboarding.md
 ├── .kilocode/
 │   └── workflows/             # Kilo Code format
 │       ├── commit-all.md
@@ -39,11 +41,13 @@ CommandKenobi/
 │       ├── push-staged.md
 │       ├── add-documentation.md
 │       ├── plan-interview.md
-│       └── generate-social-content.md
+│       ├── generate-social-content.md
+│       └── generate-onboarding.md
 ├── docs/
 │   ├── git-commit-workflow.md
 │   ├── create-pr-workflow.md
-│   └── generate-social-content-diagram.md
+│   ├── generate-social-content-diagram.md
+│   └── generate-onboarding-workflow.md
 ├── AGENTS.md                  # Detailed agent guidelines (primary reference)
 ├── README.md                  # User-facing documentation
 └── CLAUDE.md                  # This file
@@ -51,7 +55,7 @@ CommandKenobi/
 
 **Key Concept**: This repository is documentation-only. There is no executable code — only command specifications that AI assistants read and execute.
 
-**Multi-Tool Compatibility**: All 8 commands are available in three formats for OpenCode, Claude Code, and Kilo Code. Core logic is shared; only interaction patterns (user prompts, bash syntax, subagent invocation) differ per tool.
+**Multi-Tool Compatibility**: All 9 commands are available in three formats for OpenCode, Claude Code, and Kilo Code. Core logic is shared; only interaction patterns (user prompts, bash syntax, subagent invocation) differ per tool.
 
 ## Command Files Structure
 
@@ -196,6 +200,7 @@ Workflow diagrams:
 - [docs/git-commit-workflow.md](docs/git-commit-workflow.md) — Flow for commit/push commands
 - [docs/create-pr-workflow.md](docs/create-pr-workflow.md) — Flow for `/create-pr` with gh fallback
 - [docs/generate-social-content-diagram.md](docs/generate-social-content-diagram.md) — Parallel subagent architecture
+- [docs/generate-onboarding-workflow.md](docs/generate-onboarding-workflow.md) — Code tour generation pipeline
 
 Other important files:
 - `.opencode/commands/*.md` — OpenCode command specifications

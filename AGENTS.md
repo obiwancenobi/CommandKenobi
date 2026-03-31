@@ -128,7 +128,9 @@ For content generation commands, launch one subagent per target simultaneously:
 - Use the `Task` tool (OpenCode/Claude Code) or `new_task()` (Kilo Code)
 - All subagent calls must be in a single message for parallel execution
 - Each subagent receives: context, platform, goal, timezone, output path
+- Each subagent must include `subagent_type: general`, `description`, and `prompt` parameters
 - See [docs/generate-social-content-diagram.md](docs/generate-social-content-diagram.md) for the architecture diagram
+- See [docs/generate-onboarding-workflow.md](docs/generate-onboarding-workflow.md) for the onboarding tour architecture
 
 ### Safety First
 - Always verify git config before operations
