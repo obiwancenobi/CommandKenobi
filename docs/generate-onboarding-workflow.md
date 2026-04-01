@@ -20,17 +20,21 @@ flowchart TD
     Profile --> Patterns["Subagent 4: Patterns"]
     Profile --> Deps["Subagent 5: Dependencies"]
 
-    Flow -->|"sequence diagram"| Builder
-    Data -->|"flowchart"| Builder
-    Config -->|"flowchart"| Builder
-    Patterns -->|"class diagram"| Builder
-    Deps -->|"flowchart"| Builder
+    Flow -->|"sequence diagram"| Assembler
+    Data -->|"flowchart"| Assembler
+    Config -->|"flowchart"| Assembler
+    Patterns -->|"class diagram"| Assembler
+    Deps -->|"flowchart"| Assembler
 
-    Builder["Phase 3: Tour Builder"] --> HTML["Generate {OUTPUT_FILE}"]
-    HTML --> Report["Report + ask to open in browser"]
+    Assembler["Phase 3a: Data Assembler"] --> JSON["Write _onboarding-data.json"]
+    JSON --> Builder["Phase 3b: HTML Generator"]
+    Builder --> HTML["Generate {OUTPUT_FILE}"]
+    HTML --> Cleanup["Delete _onboarding-data.json"]
+    Cleanup --> Report["Report + ask to open in browser"]
     Report --> Done["Tour ready"]
 
     style Discovery fill:#1e1e2e,color:#cdd6f4
+    style Assembler fill:#1e1e2e,color:#cdd6f4
     style Builder fill:#1e1e2e,color:#cdd6f4
     style HTML fill:#1e1e2e,color:#cdd6f4
 ```
@@ -74,29 +78,25 @@ Five subagents launched simultaneously via `Task` tool:
 
 Each returns structured findings with `file:line` references and a Mermaid diagram.
 
-## Phase 3: Tour Builder
+## Phase 3: Two-Stage Tour Generation
 
-Takes all research outputs and generates `{OUTPUT_FILE}`:
+### Phase 3a: Data Assembler
 
-- If no focus area: `docs/onboarding.html`
-- If focus area provided (e.g., "authentication flow"): `docs/onboarding-authentication-flow.html`
+Combines all subagent outputs into `docs/_onboarding-data.json`:
 
-```mermaid
-flowchart LR
-    A[Step 1: Project Overview] --> B[Step 2: Entry Point]
-    B --> C[Step 3: Core Flow]
-    C --> D[Step 4: Data Layer]
-    D --> E[Step 5: Config]
-    E --> F[Step 6: Patterns]
-    F --> G[Step 7: Dependencies]
-```
+| Field | Source |
+|-------|--------|
+| `projectName`, `language`, `framework` | Discovery |
+| `steps[]` | Subagent 1 (Execution Flow) |
+| `steps[].narrative` | Subagents 1, 2, 4, 5 combined |
+| `commands` | Subagent 3 (Configuration) |
+| `architectureDiagram` | Subagent 4 (Patterns) |
+| `dataFlowDiagram` | Subagent 2 (Data Flow) |
+| `integrationDiagram` | Subagent 5 (Dependencies) |
 
-Each step includes:
-- File path badge
-- 2-4 paragraph narrative
-- Syntax-highlighted code snippet with highlighted lines
-- Mermaid diagram (where applicable)
-- Key points summary
+### Phase 3b: HTML Generator
+
+Reads `docs/_onboarding-data.json` and generates `{OUTPUT_FILE}` by template-filling the HTML structure from the JSON data. After HTML is written, deletes `_onboarding-data.json`.
 
 ## HTML Output
 
@@ -107,3 +107,7 @@ Self-contained single-page with:
 - Step navigation (prev/next, keyboard, clickable list)
 - Copy buttons on code blocks
 - Print-friendly styles
+- Mermaid.js pinned to v11 (stable) with `startOnLoad: true`
+- `parseError` handler isolates broken diagrams — one failure doesn't break others
+- `.mermaid-error` CSS class provides graceful fallback for broken diagrams
+- `<noscript>` fallback for non-JS environments
