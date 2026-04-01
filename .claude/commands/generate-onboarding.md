@@ -298,14 +298,73 @@ Return a structured summary with:
 
 ## Step 4: Generate HTML Tour
 
-After ALL subagents complete, generate the onboarding HTML file.
+After ALL subagents complete, generate the onboarding HTML file in two stages.
+
+### Stage A: Assemble Tour Data
 
 1. Create the docs directory:
 ```
 Bash(mkdir -p docs)
 ```
 
-2. Generate `{OUTPUT_FILE}` as a self-contained single-page HTML file.
+2. Combine all subagent outputs into a structured JSON file at `docs/_onboarding-data.json`. The JSON must follow this schema:
+
+```json
+{
+  "projectName": "string — from directory name or package config",
+  "language": "string — primary language",
+  "framework": "string — primary framework or 'None'",
+  "description": "string — brief project description from README or config",
+  "dependencies": ["string — top 5-10 key dependencies"],
+  "commands": {
+    "build": "string or null",
+    "dev": "string or null",
+    "test": "string or null"
+  },
+  "steps": [
+    {
+      "title": "string — step title from execution flow",
+      "filePath": "string — e.g. src/index.ts:1-30",
+      "narrative": "string — 2-4 paragraphs explaining the step",
+      "code": "string — 10-50 lines of source code",
+      "highlightLines": [1, 5, 8],
+      "keyPoints": ["string — 2-3 bullet points"],
+      "diagram": "string — raw Mermaid source, or null"
+    }
+  ],
+  "architectureDiagram": "string — raw Mermaid source from Subagent 4, or null",
+  "dataFlowDiagram": "string — raw Mermaid source from Subagent 2, or null",
+  "integrationDiagram": "string — raw Mermaid source from Subagent 5, or null"
+}
+```
+
+Use data from all 5 subagents:
+- Steps array: from Subagent 1 (Execution Flow) — each flow step becomes one entry
+- Narrative for each step: weave in findings from Subagent 2 (data flow), Subagent 4 (patterns), and Subagent 5 (dependencies)
+- Commands: from Subagent 3 (Configuration)
+- Diagrams: from each respective subagent
+
+If a subagent failed, set its fields to `null` and note the gap in the relevant step's narrative.
+
+### Stage B: Generate HTML from Data
+
+Read `docs/_onboarding-data.json` and generate `{OUTPUT_FILE}` as a self-contained single-page HTML file.
+
+The HTML generation is template-filling from the JSON data. For each field in the JSON:
+- `projectName`, `language`, `framework`, `description` → Step 1: Project Overview content
+- `dependencies` → Project Overview dependency list
+- `commands` → Project Overview "How to Run" section
+- `steps[]` → Steps 2-N, one tour step per entry
+- `steps[].code` → Syntax-highlighted code block with `highlightLines` applied
+- `steps[].diagram` → `<pre class="mermaid">` block (skip if null)
+- `architectureDiagram`, `dataFlowDiagram`, `integrationDiagram` → Mermaid blocks in Project Overview
+
+### Stage C: Cleanup
+
+Delete the temporary data file:
+```
+Bash(rm -f docs/_onboarding-data.json)
+```
 
 ### HTML Requirements
 
