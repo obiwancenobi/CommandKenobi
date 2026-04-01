@@ -93,6 +93,15 @@ sequenceDiagram
     Module1-->>Entry: response
 ```
 
+Mermaid syntax rules — follow these strictly:
+- Wrap ALL node labels in double quotes: A["My Label"] not A[My Label]
+- No special characters outside quoted labels (no parentheses, colons, ampersands in bare text)
+- Use only these diagram types: sequenceDiagram, flowchart, classDiagram
+- No subgraphs with special characters in titles
+- Keep diagrams under 20 nodes — simplify if needed
+- Test mentally: does every arrow have a valid source and target?
+- If unsure about syntax, use a simpler diagram rather than a complex broken one
+
 If focus is not "full", prioritize the focus area in your trace.
 
 Output your findings as a structured list that can be used to build an HTML tour. Include the Mermaid diagram.
@@ -126,6 +135,15 @@ flowchart LR
     Transform --> Store[Store]
     Store --> Output[Output]
 ```
+
+Mermaid syntax rules — follow these strictly:
+- Wrap ALL node labels in double quotes: A["My Label"] not A[My Label]
+- No special characters outside quoted labels (no parentheses, colons, ampersands in bare text)
+- Use only these diagram types: sequenceDiagram, flowchart, classDiagram
+- No subgraphs with special characters in titles
+- Keep diagrams under 20 nodes — simplify if needed
+- Test mentally: does every arrow have a valid source and target?
+- If unsure about syntax, use a simpler diagram rather than a complex broken one
 
 Return a structured summary with:
 - Data inputs (with file:line)
@@ -165,6 +183,15 @@ flowchart TD
     Test --> Deploy[Deploy]
 ```
 
+Mermaid syntax rules — follow these strictly:
+- Wrap ALL node labels in double quotes: A["My Label"] not A[My Label]
+- No special characters outside quoted labels (no parentheses, colons, ampersands in bare text)
+- Use only these diagram types: sequenceDiagram, flowchart, classDiagram
+- No subgraphs with special characters in titles
+- Keep diagrams under 20 nodes — simplify if needed
+- Test mentally: does every arrow have a valid source and target?
+- If unsure about syntax, use a simpler diagram rather than a complex broken one
+
 Return a structured summary covering:
 - Build & Run commands
 - Environment variables
@@ -202,6 +229,15 @@ classDiagram
     Service --> Repository : uses
     Repository --> Database : connects
 ```
+
+Mermaid syntax rules — follow these strictly:
+- Wrap ALL node labels in double quotes: A["My Label"] not A[My Label]
+- No special characters outside quoted labels (no parentheses, colons, ampersands in bare text)
+- Use only these diagram types: sequenceDiagram, flowchart, classDiagram
+- No subgraphs with special characters in titles
+- Keep diagrams under 20 nodes — simplify if needed
+- Test mentally: does every arrow have a valid source and target?
+- If unsure about syntax, use a simpler diagram rather than a complex broken one
 
 Return a structured summary with:
 - Architecture pattern
@@ -242,6 +278,15 @@ flowchart LR
     App --> Cache[(Cache)]
 ```
 
+Mermaid syntax rules — follow these strictly:
+- Wrap ALL node labels in double quotes: A["My Label"] not A[My Label]
+- No special characters outside quoted labels (no parentheses, colons, ampersands in bare text)
+- Use only these diagram types: sequenceDiagram, flowchart, classDiagram
+- No subgraphs with special characters in titles
+- Keep diagrams under 20 nodes — simplify if needed
+- Test mentally: does every arrow have a valid source and target?
+- If unsure about syntax, use a simpler diagram rather than a complex broken one
+
 Return a structured summary with:
 - External services (with file:line references showing integration points)
 - Database setup
@@ -253,36 +298,96 @@ Return a structured summary with:
 
 ## Step 4: Generate HTML Tour
 
-After ALL subagents complete, generate the onboarding HTML file.
+After ALL subagents complete, generate the onboarding HTML file in two stages.
+
+### Stage A: Assemble Tour Data
 
 1. Create the docs directory:
 ```
 mkdir -p docs
 ```
 
-2. Generate `{OUTPUT_FILE}` as a self-contained single-page HTML file.
+2. Combine all subagent outputs into a structured JSON file at `docs/_onboarding-data.json`. The JSON must follow this schema:
+
+```json
+{
+  "projectName": "string — from directory name or package config",
+  "language": "string — primary language",
+  "framework": "string — primary framework or 'None'",
+  "description": "string — brief project description from README or config",
+  "dependencies": ["string — top 5-10 key dependencies"],
+  "commands": {
+    "build": "string or null",
+    "dev": "string or null",
+    "test": "string or null"
+  },
+  "steps": [
+    {
+      "title": "string — step title from execution flow",
+      "filePath": "string — e.g. src/index.ts:1-30",
+      "narrative": "string — 2-4 paragraphs explaining the step",
+      "code": "string — 10-50 lines of source code",
+      "highlightLines": [1, 5, 8],
+      "keyPoints": ["string — 2-3 bullet points"],
+      "diagram": "string — raw Mermaid source, or null"
+    }
+  ],
+  "architectureDiagram": "string — raw Mermaid source from Subagent 4, or null",
+  "dataFlowDiagram": "string — raw Mermaid source from Subagent 2, or null",
+  "integrationDiagram": "string — raw Mermaid source from Subagent 5, or null"
+}
+```
+
+Use data from all 5 subagents:
+- Steps array: from Subagent 1 (Execution Flow) — each flow step becomes one entry
+- Narrative for each step: weave in findings from Subagent 2 (data flow), Subagent 4 (patterns), and Subagent 5 (dependencies)
+- Commands: from Subagent 3 (Configuration)
+- Diagrams: from each respective subagent
+
+If a subagent failed, set its fields to `null` and note the gap in the relevant step's narrative.
+
+### Stage B: Generate HTML from Data
+
+Read `docs/_onboarding-data.json` and generate `{OUTPUT_FILE}` as a self-contained single-page HTML file.
+
+The HTML generation is template-filling from the JSON data. For each field in the JSON:
+- `projectName`, `language`, `framework`, `description` → Step 1: Project Overview content
+- `dependencies` → Project Overview dependency list
+- `commands` → Project Overview "How to Run" section
+- `steps[]` → Steps 2-N, one tour step per entry
+- `steps[].code` → Syntax-highlighted code block with `highlightLines` applied
+- `steps[].diagram` → `<pre class="mermaid">` block (skip if null)
+- `architectureDiagram`, `dataFlowDiagram`, `integrationDiagram` → Mermaid blocks in Project Overview
+
+### Stage C: Cleanup
+
+Delete the temporary data file:
+```
+rm -f docs/_onboarding-data.json
+```
 
 ### HTML Requirements
 
 The HTML file MUST be completely self-contained with ALL CSS and JavaScript inlined. The ONE exception is Mermaid.js — include it via CDN and initialize properly:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      securityLevel: 'loose'
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    securityLevel: 'loose'
+  });
+  mermaid.parseError = function(err, hash) {
+    console.warn('Mermaid parse error:', err);
+  };
+  window.addEventListener('load', function() {
+    document.querySelectorAll('.mermaid[data-processed="true"]').forEach(function(el) {
+      if (!el.querySelector('svg')) {
+        el.classList.add('mermaid-error');
+        el.setAttribute('title', 'Diagram could not render — showing source');
+      }
     });
-    document.querySelectorAll('pre.mermaid, code.language-mermaid').forEach(function(el) {
-      var code = el.textContent;
-      var div = document.createElement('div');
-      div.className = 'mermaid';
-      div.textContent = code;
-      el.parentNode.replaceChild(div, el);
-    });
-    mermaid.init(undefined, '.mermaid');
   });
 </script>
 ```
@@ -298,6 +403,11 @@ Each Mermaid diagram in the HTML must be in a `<pre class="mermaid">` block with
 - Dark theme by default: background `#1e1e2e`, text `#cdd6f4`, accent `#89b4fa`, secondary `#585b70`
 - Light mode toggle button in the sidebar header
 - Light theme: background `#eff1f5`, text `#4c4f69`, accent `#1e66f5`, secondary `#9ca0b0`
+
+**Diagram Error Fallback:**
+- `.mermaid-error` class: dashed border using `var(--secondary)`, monospace font, `white-space: pre-wrap`, `opacity: 0.7`
+- `.mermaid-error::before` pseudo-element displays: "Diagram could not render — raw source shown below" in `var(--accent)` color
+- `<noscript>` block: sets `.mermaid` to `pre-wrap` monospace and shows "JavaScript is required for interactive navigation and diagram rendering."
 
 **Code Blocks:**
 - Syntax highlighting implemented via CSS class-based tokenizer (support JS/TS, Python, Go, Rust, Java, Ruby, Shell, HTML, CSS at minimum)
