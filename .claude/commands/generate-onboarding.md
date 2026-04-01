@@ -93,6 +93,15 @@ sequenceDiagram
     Module1-->>Entry: response
 ```
 
+Mermaid syntax rules — follow these strictly:
+- Wrap ALL node labels in double quotes: A["My Label"] not A[My Label]
+- No special characters outside quoted labels (no parentheses, colons, ampersands in bare text)
+- Use only these diagram types: sequenceDiagram, flowchart, classDiagram
+- No subgraphs with special characters in titles
+- Keep diagrams under 20 nodes — simplify if needed
+- Test mentally: does every arrow have a valid source and target?
+- If unsure about syntax, use a simpler diagram rather than a complex broken one
+
 If focus is not "full", prioritize the focus area in your trace.
 
 Output your findings as a structured list that can be used to build an HTML tour. Include the Mermaid diagram.
@@ -126,6 +135,15 @@ flowchart LR
     Transform --> Store[Store]
     Store --> Output[Output]
 ```
+
+Mermaid syntax rules — follow these strictly:
+- Wrap ALL node labels in double quotes: A["My Label"] not A[My Label]
+- No special characters outside quoted labels (no parentheses, colons, ampersands in bare text)
+- Use only these diagram types: sequenceDiagram, flowchart, classDiagram
+- No subgraphs with special characters in titles
+- Keep diagrams under 20 nodes — simplify if needed
+- Test mentally: does every arrow have a valid source and target?
+- If unsure about syntax, use a simpler diagram rather than a complex broken one
 
 Return a structured summary with:
 - Data inputs (with file:line)
@@ -165,6 +183,15 @@ flowchart TD
     Test --> Deploy[Deploy]
 ```
 
+Mermaid syntax rules — follow these strictly:
+- Wrap ALL node labels in double quotes: A["My Label"] not A[My Label]
+- No special characters outside quoted labels (no parentheses, colons, ampersands in bare text)
+- Use only these diagram types: sequenceDiagram, flowchart, classDiagram
+- No subgraphs with special characters in titles
+- Keep diagrams under 20 nodes — simplify if needed
+- Test mentally: does every arrow have a valid source and target?
+- If unsure about syntax, use a simpler diagram rather than a complex broken one
+
 Return a structured summary covering:
 - Build & Run commands
 - Environment variables
@@ -202,6 +229,15 @@ classDiagram
     Service --> Repository : uses
     Repository --> Database : connects
 ```
+
+Mermaid syntax rules — follow these strictly:
+- Wrap ALL node labels in double quotes: A["My Label"] not A[My Label]
+- No special characters outside quoted labels (no parentheses, colons, ampersands in bare text)
+- Use only these diagram types: sequenceDiagram, flowchart, classDiagram
+- No subgraphs with special characters in titles
+- Keep diagrams under 20 nodes — simplify if needed
+- Test mentally: does every arrow have a valid source and target?
+- If unsure about syntax, use a simpler diagram rather than a complex broken one
 
 Return a structured summary with:
 - Architecture pattern
@@ -241,6 +277,15 @@ flowchart LR
     App --> API[External API]
     App --> Cache[(Cache)]
 ```
+
+Mermaid syntax rules — follow these strictly:
+- Wrap ALL node labels in double quotes: A["My Label"] not A[My Label]
+- No special characters outside quoted labels (no parentheses, colons, ampersands in bare text)
+- Use only these diagram types: sequenceDiagram, flowchart, classDiagram
+- No subgraphs with special characters in titles
+- Keep diagrams under 20 nodes — simplify if needed
+- Test mentally: does every arrow have a valid source and target?
+- If unsure about syntax, use a simpler diagram rather than a complex broken one
 
 Return a structured summary with:
 - External services (with file:line references showing integration points)
