@@ -312,22 +312,23 @@ Bash(mkdir -p docs)
 The HTML file MUST be completely self-contained with ALL CSS and JavaScript inlined. The ONE exception is Mermaid.js — include it via CDN and initialize properly:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      securityLevel: 'loose'
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    securityLevel: 'loose'
+  });
+  mermaid.parseError = function(err, hash) {
+    console.warn('Mermaid parse error:', err);
+  };
+  window.addEventListener('load', function() {
+    document.querySelectorAll('.mermaid[data-processed="true"]').forEach(function(el) {
+      if (!el.querySelector('svg')) {
+        el.classList.add('mermaid-error');
+        el.setAttribute('title', 'Diagram could not render — showing source');
+      }
     });
-    document.querySelectorAll('pre.mermaid, code.language-mermaid').forEach(function(el) {
-      var code = el.textContent;
-      var div = document.createElement('div');
-      div.className = 'mermaid';
-      div.textContent = code;
-      el.parentNode.replaceChild(div, el);
-    });
-    mermaid.init(undefined, '.mermaid');
   });
 </script>
 ```
@@ -343,6 +344,11 @@ Each Mermaid diagram in the HTML must be in a `<pre class="mermaid">` block with
 - Dark theme by default: background `#1e1e2e`, text `#cdd6f4`, accent `#89b4fa`, secondary `#585b70`
 - Light mode toggle button in the sidebar header
 - Light theme: background `#eff1f5`, text `#4c4f69`, accent `#1e66f5`, secondary `#9ca0b0`
+
+**Diagram Error Fallback:**
+- `.mermaid-error` class: dashed border using `var(--secondary)`, monospace font, `white-space: pre-wrap`, `opacity: 0.7`
+- `.mermaid-error::before` pseudo-element displays: "Diagram could not render — raw source shown below" in `var(--accent)` color
+- `<noscript>` block: sets `.mermaid` to `pre-wrap` monospace and shows "JavaScript is required for interactive navigation and diagram rendering."
 
 **Code Blocks:**
 - Syntax highlighting implemented via CSS class-based tokenizer (support JS/TS, Python, Go, Rust, Java, Ruby, Shell, HTML, CSS at minimum)
