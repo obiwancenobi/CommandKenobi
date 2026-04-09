@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CommandKenobi - Code Tour</title>
+<style>
+:root {
+  --bg: #1e1e2e;
+  --bg-surface: #181825;
+  --bg-overlay: #11111b;
+  --text: #cdd6f4;
+  --text-dim: #a6adc8;
+  --accent: #89b4fa;
+  --accent-dim: #74c7ec;
+  --secondary: #585b70;
+  --green: #a6e3a1;
+  --red: #f38ba8;
+  --yellow: #f9e2af;
+  --purple: #cba6f7;
+  --peach: #fab387;
+  --teal: #94e2d5;
+  --code-bg: #14141e;
+  --sidebar-width: 320px;
+  --highlight-bg: rgba(137, 180, 250, 0.08);
+  --border: #313244;
+}
+.light {
+  --bg: #eff1f5;
+  --bg-surface: #e6e9ef;
+  --bg-overlay: #dce0e8;
+  --text: #4c4f69;
+  --text-dim: #6c6f85;
+  --accent: #1e66f5;
+  --accent-dim: #209fb5;
+  --secondary: #9ca0b0;
+  --green: #40a02b;
+  --red: #d20f39;
+  --yellow: #df8e1d;
+  --purple: #8839ef;
+  --peach: #fe640b;
+  --teal: #179299;
+  --code-bg: #dce0e8;
+  --highlight-bg: rgba(30, 102, 245, 0.08);
+  --border: #bcc0cc;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  transition: background 0.3s, color 0.3s;
+}
+.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-header {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.sidebar-header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.3px;
+}
+.sidebar-header .subtitle {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+#theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+#theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.step-list {
+  list-style: none;
+  padding: 12px 0;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+.step-list li {
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-dim);
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.step-list li:hover {
+  background: var(--highlight-bg);
+  color: var(--text);
+}
+.step-list li.active {
+  border-left-color: var(--accent);
+  color: var(--accent);
+  background: var(--highlight-bg);
+  font-weight: 600;
+}
+.step-num {
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  text-align: center;
+  opacity: 0.6;
+}
+.step-list li.active .step-num { opacity: 1; }
+.progress-bar {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.progress-track {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+.progress-text {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  text-align: center;
+}
+.content {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  padding: 48px 56px 96px;
+  max-width: 900px;
+}
+.step { display: none; }
+.step.active { display: block; }
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.step h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 24px;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+}
+.step p {
+  margin-bottom: 16px;
+  color: var(--text);
+  font-size: 15px;
+}
+.step h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 32px 0 12px;
+}
+.file-badge {
+  display: inline-block;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  background: var(--bg-overlay);
+  color: var(--accent-dim);
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+}
+.code-block-wrapper {
+  position: relative;
+  margin: 16px 0 24px;
+}
+.code-block {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.code-block pre {
+  padding: 16px 20px;
+  margin: 0;
+  white-space: pre;
+}
+.code-line {
+  display: block;
+}
+.code-line .line-num {
+  display: inline-block;
+  width: 32px;
+  text-align: right;
+  margin-right: 16px;
+  color: var(--secondary);
+  user-select: none;
+  font-size: 12px;
+}
+.code-line.highlight {
+  background: var(--highlight-bg);
+  border-left: 3px solid var(--accent);
+  margin-left: -3px;
+}
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.key-points {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 24px 0;
+}
+.key-points h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.key-points ul {
+  list-style: none;
+  padding: 0;
+}
+.key-points li {
+  padding: 4px 0;
+  font-size: 14px;
+  color: var(--text);
+  position: relative;
+  padding-left: 16px;
+}
+.key-points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+.dep-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+.dep-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.dep-card .dep-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+.dep-card .dep-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.dep-card.optional { border-left: 3px solid var(--yellow); }
+.dep-card.required { border-left: 3px solid var(--green); }
+.cmd-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.cmd-table th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.cmd-table td {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  vertical-align: top;
+}
+.cmd-table code {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.diagram-container {
+  margin: 24px 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  overflow-x: auto;
+}
+.diagram-container h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+pre.mermaid {
+  background: transparent;
+  text-align: center;
+}
+.mermaid-error {
+  border: 1px dashed var(--secondary);
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  opacity: 0.7;
+  padding: 16px;
+  text-align: left;
+}
+.mermaid-error::before {
+  content: 'Diagram could not render \2014  raw source shown below';
+  display: block;
+  color: var(--accent);
+  font-size: 11px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.nav-btn:disabled:hover { border-color: var(--border); color: var(--text); }
+.format-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+.format-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.format-card h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.format-card p {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.format-card code {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 11px;
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.tok-kw { color: var(--purple); }
+.tok-str { color: var(--green); }
+.tok-cm { color: var(--secondary); font-style: italic; }
+.tok-num { color: var(--peach); }
+.tok-fn { color: var(--accent); }
+.tok-op { color: var(--teal); }
+.tok-var { color: var(--text); }
+.tok-type { color: var(--yellow); }
+.tok-tag { color: var(--red); }
+.tok-attr { color: var(--peach); }
+@media print {
+  .sidebar { display: none; }
+  .content { margin-left: 0; padding: 20px; max-width: 100%; }
+  .step { display: block !important; page-break-inside: avoid; margin-bottom: 40px; }
+  .nav-buttons { display: none; }
+  body { background: white; color: black; }
+  .code-block { border: 1px solid #ccc; }
+  .key-points { border: 1px solid #ccc; }
+  .copy-btn { display: none; }
+  pre.mermaid { display: none; }
+}
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    width: 100%;
+    height: auto;
+    max-height: 60px;
+    overflow: hidden;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    transition: max-height 0.3s;
+  }
+  .sidebar.expanded { max-height: 80vh; overflow-y: auto; }
+  .sidebar-header { padding: 14px 16px; }
+  .sidebar-header h1 { font-size: 16px; }
+  .content {
+    margin-left: 0;
+    margin-top: 60px;
+    padding: 24px 16px 80px;
+  }
+  .step h2 { font-size: 22px; }
+  .format-comparison { grid-template-columns: 1fr; }
+  .dep-grid { grid-template-columns: 1fr; }
+  .code-block { font-size: 12px; }
+  .code-block pre { overflow-x: auto; }
+  .menu-toggle {
+    display: block !important;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+}
+@media (min-width: 769px) {
+  .menu-toggle { display: none !important; }
+}
+noscript .noscript-msg {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 20px;
+  margin: 20px;
+  border-radius: 8px;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+</style>
+<noscript>
+<style>
+.mermaid { white-space: pre-wrap; font-family: monospace; }
+.step { display: block !important; margin-bottom: 40px; }
+.sidebar .step-list { display: none; }
+.progress-bar { display: none; }
+.nav-buttons { display: none; }
+</style>
+</noscript>
+</head>
+<body>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div>
+      <h1>CommandKenobi</h1>
+      <div class="subtitle">Code Tour</div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+      <button id="theme-toggle" aria-label="Toggle theme">&#9788;</button>
+    </div>
+  </div>
+  <ul class="step-list" id="step-list">
+    <li class="active" data-step="0"><span class="step-num">1</span> Project Overview</li>
+    <li data-step="1"><span class="step-num">2</span> Command Discovery</li>
+    <li data-step="2"><span class="step-num">3</span> Context Injection</li>
+    <li data-step="3"><span class="step-num">4</span> Frontmatter Parsing</li>
+    <li data-step="4"><span class="step-num">5</span> Pre-flight Checks</li>
+    <li data-step="5"><span class="step-num">6</span> Change Analysis</li>
+    <li data-step="6"><span class="step-num">7</span> Output Generation</li>
+    <li data-step="7"><span class="step-num">8</span> User Approval Gate</li>
+    <li data-step="8"><span class="step-num">9</span> Execution &amp; Errors</li>
+  </ul>
+  <div class="progress-bar">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:11.1%"></div></div>
+    <div class="progress-text" id="progress-text">Step 1 of 9</div>
+  </div>
+</nav>
+
+<main class="content" id="content">
+
+<!-- Step 1: Project Overview -->
+<section class="step active" data-step="0">
+  <div class="step-badge">Step 1 of 9</div>
+  <h2>Project Overview</h2>
+
+  <p>
+    <strong>CommandKenobi</strong> is a documentation-only repository that provides slash command specifications for git operations and planning workflows. The core idea: write once, run across three AI coding assistants.
+  </p>
+  <p>
+    There is no executable code here. Instead, each file is a structured Markdown specification that an AI assistant reads and follows. When you type <code>/commit-all</code> in your AI tool, it loads the corresponding spec file and executes the workflow described within it.
+  </p>
+
+  <h3>Language &amp; Framework</h3>
+  <p>
+    <strong>Primary language:</strong> Markdown<br>
+    <strong>Framework:</strong> None (pure documentation for AI assistants)<br>
+    <strong>Repository type:</strong> Static command specifications
+  </p>
+
+  <h3>Available Commands</h3>
+  <table class="cmd-table">
+    <thead>
+      <tr><th>Command</th><th>Description</th><th>Category</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>/commit-all</code></td><td>Create a conventional commit from all changes</td><td>Git</td></tr>
+      <tr><td><code>/commit-staged</code></td><td>Create a conventional commit from staged changes</td><td>Git</td></tr>
+      <tr><td><code>/push-all</code></td><td>Commit all changes and push to remote</td><td>Git</td></tr>
+      <tr><td><code>/push-staged</code></td><td>Commit staged changes and push to remote</td><td>Git</td></tr>
+      <tr><td><code>/create-pr</code></td><td>Commit, push, and create a pull request</td><td>Git</td></tr>
+      <tr><td><code>/add-documentation</code></td><td>Add comprehensive documentation</td><td>Content</td></tr>
+      <tr><td><code>/plan-interview</code></td><td>Interview to expand a spec from prompt</td><td>Planning</td></tr>
+      <tr><td><code>/generate-social-content</code></td><td>Generate social media content with parallel subagents</td><td>Content</td></tr>
+      <tr><td><code>/generate-onboarding</code></td><td>Generate a guided code tour as HTML</td><td>Content</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Dependencies</h3>
+  <div class="dep-grid">
+    <div class="dep-card required">
+      <div class="dep-name">git</div>
+      <div class="dep-desc">Required. All version control operations depend on git.</div>
+    </div>
+    <div class="dep-card optional">
+      <div class="dep-name">gh (GitHub CLI)</div>
+      <div class="dep-desc">Optional. Used by /create-pr. Falls back to browser URL.</div>
+    </div>
+    <div class="dep-card optional">
+      <div class="dep-name">brew (Homebrew)</div>
+      <div class="dep-desc">Optional. Used to install gh if missing.</div>
+    </div>
+    <div class="dep-card optional">
+      <div class="dep-name">yq</div>
+      <div class="dep-desc">Optional. YAML frontmatter validation only.</div>
+    </div>
+  </div>
+
+  <h3>How to Run</h3>
+  <p>No build step exists. Clone the repo into your project and use commands in your AI assistant:</p>
+  <div class="code-block-wrapper">
+    <div class="file-badge">Terminal</div>
+    <div class="code-block"><pre><span class="code-line"><span class="line-num"> 1</span><span class="tok-cm"># Clone into your project</span></span>
+<span class="code-line"><span class="line-num"> 2</span><span class="tok-fn">git</span> clone &lt;repo-url&gt; .</span>
+<span class="code-line"><span class="line-num"> 3</span></span>
+<span class="code-line"><span class="line-num"> 4</span><span class="tok-cm"># Use in your AI assistant:</span></span>
+<span class="code-line"><span class="line-num"> 5</span>/commit-all</span>
+<span class="code-line"><span class="line-num"> 6</span>/push-staged</span>
+<span class="code-line"><span class="line-num"> 7</span>/create-pr</span></pre></div>
+  </div>
+
+  <h3>Validation</h3>
+  <div class="code-block-wrapper">
+    <div class="file-badge">Terminal</div>
+    <button class="copy-btn" data-copy="validate">Copy</button>
+    <div class="code-block"><pre><span class="code-line"><span class="line-num"> 1</span><span class="tok-cm"># Verify Claude Code command files</span></span>
+<span class="code-line"><span class="line-num"> 2</span><span class="tok-kw">for</span> f <span class="tok-kw">in</span> .claude/commands/*.md; <span class="tok-kw">do</span></span>
+<span class="code-line"><span class="line-num"> 3</span>  grep -q <span class="tok-str">"^description:"</span> <span class="tok-str">"$f"</span> &amp;&amp; echo <span class="tok-str">"OK: $f"</span></span>
+<span class="code-line"><span class="line-num"> 4</span><span class="tok-kw">done</span></span></pre></div>
+  </div>
+
+  <h3>Architecture Overview</h3>
+  <div class="diagram-container">
+    <h4>System Architecture</h4>
+    <pre class="mermaid">
+classDiagram
+    class SharedWorkflow {
+        +PreflightChecks
+        +AnalyzeChanges
+        +GenerateOutput
+        +PresentToUser
+        +Execute
+        +ErrorHandling
+    }
+    class OpenCodeFormat {
+        +description frontmatter
+        +agent frontmatter
+        +question tool
+    }
+    class ClaudeCodeFormat {
+        +description frontmatter
+        +allowed-tools frontmatter
+        +inline chat prompts
+    }
+    class KiloCodeFormat {
+        +heading title
+        +ask_user
+        +execute_command
+    }
+    SharedWorkflow <|-- OpenCodeFormat
+    SharedWorkflow <|-- ClaudeCodeFormat
+    SharedWorkflow <|-- KiloCodeFormat
+    </pre>
+  </div>
+
+  <div class="diagram-container">
+    <h4>Data Flow</h4>
+    <pre class="mermaid">
+flowchart TD
+    U(["User Invocation"]) --> ARGS["Parse Arguments"]
+    U --> PRE["Pre-flight Checks"]
+    GIT["Git State"] --> PRE
+    PRE --> ANALYZE["Analyze Changes"]
+    GIT --> ANALYZE
+    ANALYZE --> GEN["Generate Output"]
+    GEN --> PRESENT["Present to User"]
+    PRESENT --> CHOICE{"User Choice"}
+    CHOICE --> Accept["Accept"]
+    Accept --> EXEC["Execute"]
+    CHOICE --> Suggest["Suggest Again"]
+    Suggest --> GEN
+    CHOICE --> Cancel["Cancel"]
+    Cancel --> ABORT["Abort"]
+    EXEC --> COMMIT["Git Commit"]
+    EXEC --> PUSH["Git Push"]
+    EXEC --> PR["Pull Request"]
+    EXEC --> FILES["Generated Files"]
+    </pre>
+  </div>
+
+  <div class="diagram-container">
+    <h4>External Integrations</h4>
+    <pre class="mermaid">
+flowchart TD
+    CK["CommandKenobi"] --> OC["OpenCode"]
+    CK --> CC["Claude Code"]
+    CK --> KC["Kilo Code"]
+    CK --> Git["git"]
+    CK --> GH["gh CLI"]
+    GH --> GitHub["GitHub"]
+    GH --> GitLab["GitLab"]
+    GH --> Bitbucket["Bitbucket"]
+    CK --> CDN["jsDelivr CDN"]
+    </pre>
+  </div>
+
+  <div class="key-points">
+    <h4>Key Takeaways</h4>
+    <ul>
+      <li>9 commands maintained in 3 parallel formats (OpenCode, Claude Code, Kilo Code)</li>
+      <li>Core workflow logic is shared; only interaction patterns differ per tool</li>
+      <li>No build, test, or deploy pipeline &mdash; pure documentation</li>
+      <li>git is the only hard requirement; everything else has fallbacks</li>
+    </ul>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" disabled>&larr; Previous</button>
+    <button class="nav-btn" onclick="goToStep(1)">Next &rarr;</button>
+  </div>
+</section>
+
+<!-- Step 2: Command Discovery -->
+<section class="step" data-step="1">
+  <div class="step-badge">Step 2 of 9</div>
+  <h2>Command Discovery and Auto-Loading</h2>
+
+  <p>
+    When a user clones CommandKenobi into their project, the AI tool automatically discovers command files from its designated directory. Claude Code scans <code>.claude/commands/</code>, OpenCode scans <code>.opencode/commands/</code>, and Kilo Code scans <code>.kilocode/workflows/</code>.
+  </p>
+  <p>
+    No configuration is required. The directories follow each tool's conventions, so commands appear as slash commands automatically. The user types something like <code>/commit-all</code> in their AI assistant conversation, and the tool loads the corresponding Markdown spec.
+  </p>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">README.md:12-29</div>
+    <button class="copy-btn" data-copy="discovery">Copy</button>
+    <div class="code-block"><pre><span class="code-line"><span class="line-num">12</span>Pick your tool and you're ready to go &mdash; no configuration needed.</span>
+<span class="code-line"><span class="line-num">13</span></span>
+<span class="code-line highlight"><span class="line-num">14</span>| Tool           | Directory              | Setup                            |</span>
+<span class="code-line highlight"><span class="line-num">15</span>|----------------|------------------------|----------------------------------|</span>
+<span class="code-line highlight"><span class="line-num">16</span>| <span class="tok-kw">OpenCode</span>       | <span class="tok-str">.opencode/commands/</span>    | Clone repo, commands auto-discovered |</span>
+<span class="code-line highlight"><span class="line-num">17</span>| <span class="tok-kw">Claude Code</span>    | <span class="tok-str">.claude/commands/</span>      | Clone repo, commands auto-discovered |</span>
+<span class="code-line highlight"><span class="line-num">18</span>| <span class="tok-kw">Kilo Code</span>      | <span class="tok-str">.kilocode/workflows/</span>   | Clone repo, workflows auto-discovered |</span>
+<span class="code-line"><span class="line-num">19</span></span>
+<span class="code-line"><span class="line-num">20</span><span class="tok-cm"># Clone into any of your projects</span></span>
+<span class="code-line"><span class="line-num">21</span>git clone &lt;this-repo-url&gt; .</span>
+<span class="code-line"><span class="line-num">22</span></span>
+<span class="code-line"><span class="line-num">23</span><span class="tok-cm"># Then use in your AI assistant:</span></span>
+<span class="code-line"><span class="line-num">24</span>/commit-all</span>
+<span class="code-line"><span class="line-num">25</span>/push-staged</span>
+<span class="code-line"><span class="line-num">26</span>/create-pr</span></pre></div>
+  </div>
+
+  <h3>Directory Layout</h3>
+  <p>
+    Each tool has its own directory with the same 9 command files. This multi-format approach means teams using different AI assistants can share the same repository.
+  </p>
+
+  <div class="format-comparison">
+    <div class="format-card">
+      <h4>OpenCode</h4>
+      <p><code>.opencode/commands/</code></p>
+      <p>YAML frontmatter with <code>description</code> and <code>agent</code> fields. Uses the <code>question</code> tool for user input.</p>
+    </div>
+    <div class="format-card">
+      <h4>Claude Code</h4>
+      <p><code>.claude/commands/</code></p>
+      <p>YAML frontmatter with <code>description</code> and <code>allowed-tools</code>. Uses inline chat prompts with numbered options.</p>
+    </div>
+    <div class="format-card">
+      <h4>Kilo Code</h4>
+      <p><code>.kilocode/workflows/</code></p>
+      <p>No frontmatter. Starts with <code># Title</code>. Uses <code>ask_user</code> and <code>execute_command</code>.</p>
+    </div>
+  </div>
+
+  <div class="key-points">
+    <h4>Key Takeaways</h4>
+    <ul>
+      <li>Three formats auto-discovered by each AI tool &mdash; zero configuration</li>
+      <li>Same 9 commands available across all three platforms</li>
+      <li>Slash commands invoke the workflow defined in each Markdown file</li>
+    </ul>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToStep(0)">&larr; Previous</button>
+    <button class="nav-btn" onclick="goToStep(2)">Next &rarr;</button>
+  </div>
+</section>
+
+<!-- Step 3: Context Injection -->
+<section class="step" data-step="2">
+  <div class="step-badge">Step 3 of 9</div>
+  <h2>Context Injection via CLAUDE.md and AGENTS.md</h2>
+
+  <p>
+    Before executing any command, the AI assistant loads repository-level instructions. Claude Code reads <code>CLAUDE.md</code> automatically as project instructions. This file establishes the repository overview, architecture, command file structure, git conventions, and multi-tool interaction patterns.
+  </p>
+  <p>
+    <code>AGENTS.md</code> provides comprehensive agent guidelines including code style, naming conventions, error handling patterns, and safety rules. Together, these two files set the "rules of engagement" that govern all subsequent command execution.
+  </p>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">CLAUDE.md:1-10</div>
+    <button class="copy-btn" data-copy="claudemd">Copy</button>
+    <div class="code-block"><pre><span class="code-line highlight"><span class="line-num"> 1</span><span class="tok-tag"># CLAUDE.md</span></span>
+<span class="code-line"><span class="line-num"> 2</span></span>
+<span class="code-line"><span class="line-num"> 3</span>This file provides guidance to Claude Code (claude.ai/code)</span>
+<span class="code-line"><span class="line-num"> 4</span>when working with code in this repository.</span>
+<span class="code-line"><span class="line-num"> 5</span></span>
+<span class="code-line highlight"><span class="line-num"> 6</span><span class="tok-tag">## Repository Overview</span></span>
+<span class="code-line"><span class="line-num"> 7</span></span>
+<span class="code-line"><span class="line-num"> 8</span>This repository contains command specifications for git</span>
+<span class="code-line"><span class="line-num"> 9</span>operations and planning workflows, available in three</span>
+<span class="code-line"><span class="line-num">10</span>formats for OpenCode, Claude Code, and Kilo Code.</span></pre></div>
+  </div>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">AGENTS.md:1-10</div>
+    <button class="copy-btn" data-copy="agentsmd">Copy</button>
+    <div class="code-block"><pre><span class="code-line highlight"><span class="line-num"> 1</span><span class="tok-tag"># AGENTS.md</span></span>
+<span class="code-line"><span class="line-num"> 2</span></span>
+<span class="code-line"><span class="line-num"> 3</span>Guidelines for agentic coding agents working in the</span>
+<span class="code-line"><span class="line-num"> 4</span>CommandKenobi repository.</span>
+<span class="code-line"><span class="line-num"> 5</span></span>
+<span class="code-line highlight"><span class="line-num"> 6</span><span class="tok-tag">## Repository Overview</span></span>
+<span class="code-line"><span class="line-num"> 7</span></span>
+<span class="code-line"><span class="line-num"> 8</span>This repository contains command specifications for git</span>
+<span class="code-line"><span class="line-num"> 9</span>operations and planning workflows, available in three formats</span>
+<span class="code-line"><span class="line-num">10</span>for OpenCode, Claude Code, and Kilo Code.</span></pre></div>
+  </div>
+
+  <p>
+    The key distinction: <code>CLAUDE.md</code> contains tool-specific instructions for Claude Code (e.g., <code>Bash(cmd)</code> syntax, inline prompts), while <code>AGENTS.md</code> is tool-agnostic and serves as the canonical reference for all AI agents. Both are loaded into context before any command runs.
+  </p>
+
+  <div class="key-points">
+    <h4>Key Takeaways</h4>
+    <ul>
+      <li>CLAUDE.md injected automatically as project context for Claude Code</li>
+      <li>AGENTS.md provides canonical, tool-agnostic guidelines for all agents</li>
+      <li>These rules apply to every command execution &mdash; they set conventions, safety rules, and patterns</li>
+    </ul>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToStep(1)">&larr; Previous</button>
+    <button class="nav-btn" onclick="goToStep(3)">Next &rarr;</button>
+  </div>
+</section>
+
+<!-- Step 4: Frontmatter Parsing -->
+<section class="step" data-step="3">
+  <div class="step-badge">Step 4 of 9</div>
+  <h2>Frontmatter Parsing and Permission Scoping</h2>
+
+  <p>
+    When a command is invoked, the AI assistant reads the corresponding Markdown file and parses its YAML frontmatter. The frontmatter acts as a security contract: <code>allowed-tools</code> restricts which tools the agent can use during execution.
+  </p>
+  <p>
+    For example, <code>/commit-all</code> only permits <code>Bash(git:*), Read, Grep, Glob</code>. It cannot write files, launch subagents, or use the GitHub CLI. The more complex <code>/create-pr</code> command has a wider permission scope including <code>Bash(gh:*)</code>, <code>Bash(brew:*)</code>, and the <code>Task</code> tool for subagent capabilities.
+  </p>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">.claude/commands/commit-all.md:1-4</div>
+    <button class="copy-btn" data-copy="fm-claude">Copy</button>
+    <div class="code-block"><pre><span class="code-line"><span class="line-num"> 1</span><span class="tok-op">---</span></span>
+<span class="code-line highlight"><span class="line-num"> 2</span><span class="tok-kw">description:</span> <span class="tok-str">Create a conventional commit from all changes with user approval</span></span>
+<span class="code-line highlight"><span class="line-num"> 3</span><span class="tok-kw">allowed-tools:</span> <span class="tok-str">Bash(git:*), Read, Grep, Glob</span></span>
+<span class="code-line"><span class="line-num"> 4</span><span class="tok-op">---</span></span></pre></div>
+  </div>
+
+  <h3>Compare: Three Formats</h3>
+  <p>
+    Each AI tool format uses different frontmatter. The content below each command is the same workflow &mdash; only the metadata and interaction primitives differ.
+  </p>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">.opencode/commands/commit-all.md:1-4 (OpenCode)</div>
+    <button class="copy-btn" data-copy="fm-opencode">Copy</button>
+    <div class="code-block"><pre><span class="code-line"><span class="line-num"> 1</span><span class="tok-op">---</span></span>
+<span class="code-line highlight"><span class="line-num"> 2</span><span class="tok-kw">description:</span> <span class="tok-str">Create a conventional commit from all changes with user approval</span></span>
+<span class="code-line highlight"><span class="line-num"> 3</span><span class="tok-kw">agent:</span> <span class="tok-str">build</span></span>
+<span class="code-line"><span class="line-num"> 4</span><span class="tok-op">---</span></span></pre></div>
+  </div>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">.kilocode/workflows/commit-all.md:1-3 (Kilo Code)</div>
+    <button class="copy-btn" data-copy="fm-kilo">Copy</button>
+    <div class="code-block"><pre><span class="code-line highlight"><span class="line-num"> 1</span><span class="tok-tag"># Commit All</span></span>
+<span class="code-line"><span class="line-num"> 2</span></span>
+<span class="code-line"><span class="line-num"> 3</span>Create a conventional commit from all changes with user approval.</span></pre></div>
+  </div>
+
+  <div class="key-points">
+    <h4>Key Takeaways</h4>
+    <ul>
+      <li>Frontmatter defines the permission scope for each command</li>
+      <li><code>allowed-tools</code> (Claude Code) vs <code>agent</code> (OpenCode) vs no frontmatter (Kilo Code)</li>
+      <li>Simpler commands get tighter permissions; complex commands get wider scopes</li>
+    </ul>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToStep(2)">&larr; Previous</button>
+    <button class="nav-btn" onclick="goToStep(4)">Next &rarr;</button>
+  </div>
+</section>
+
+<!-- Step 5: Pre-flight Checks -->
+<section class="step" data-step="4">
+  <div class="step-badge">Step 5 of 9</div>
+  <h2>Pre-flight Checks &mdash; Validation Before Any Action</h2>
+
+  <p>
+    Every command starts with safety validations. The agent verifies git configuration (<code>user.name</code>, <code>user.email</code>), checks the current branch, and detects protected branches (<code>main</code>, <code>master</code>, <code>develop</code>, <code>release/*</code>).
+  </p>
+  <p>
+    This "fail fast" philosophy is a core design decision. No destructive operation proceeds without passing all checks. If the user is on a protected branch, they get three options: commit anyway, create a new branch, or cancel.
+  </p>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">.claude/commands/commit-all.md:8-25</div>
+    <button class="copy-btn" data-copy="preflight">Copy</button>
+    <div class="code-block"><pre><span class="code-line"><span class="line-num"> 8</span><span class="tok-tag">## Pre-flight Checks</span></span>
+<span class="code-line"><span class="line-num"> 9</span></span>
+<span class="code-line"><span class="line-num">10</span><span class="tok-num">1.</span> <span class="tok-kw">**Verify Git Configuration**</span></span>
+<span class="code-line highlight"><span class="line-num">11</span>   - Run: Bash(git config user.name)</span>
+<span class="code-line"><span class="line-num">12</span>     If empty: <span class="tok-str">"Git user not configured. Set git config user.name first."</span></span>
+<span class="code-line highlight"><span class="line-num">13</span>   - Run: Bash(git config user.email)</span>
+<span class="code-line"><span class="line-num">14</span>     If empty: <span class="tok-str">"Git user not configured. Set git config user.email first."</span></span>
+<span class="code-line"><span class="line-num">15</span></span>
+<span class="code-line"><span class="line-num">16</span><span class="tok-num">2.</span> <span class="tok-kw">**Check Current Branch**</span></span>
+<span class="code-line highlight"><span class="line-num">17</span>   - Run: Bash(git branch --show-current)</span>
+<span class="code-line"><span class="line-num">18</span>   If branch is `main`, `master`, `develop`, or matches `release/*`,</span>
+<span class="code-line"><span class="line-num">19</span>   warn user:</span>
+<span class="code-line"><span class="line-num">20</span></span>
+<span class="code-line"><span class="line-num">21</span>   <span class="tok-str">You are on a protected branch. What would you like to do?</span></span>
+<span class="code-line"><span class="line-num">22</span></span>
+<span class="code-line highlight"><span class="line-num">23</span>   <span class="tok-num">1.</span> Commit Anyway &mdash; Commit directly to protected branch</span>
+<span class="code-line highlight"><span class="line-num">24</span>   <span class="tok-num">2.</span> Create Branch &mdash; Create a new branch and commit there</span>
+<span class="code-line highlight"><span class="line-num">25</span>   <span class="tok-num">3.</span> Cancel &mdash; Abort the commit</span></pre></div>
+  </div>
+
+  <div class="diagram-container">
+    <h4>Pre-flight Flow</h4>
+    <pre class="mermaid">
+flowchart TD
+    Start(["Command Invoked"]) --> PF1["Verify git config"]
+    PF1 --> CheckResult{"Git config OK?"}
+    CheckResult --> ConfigNo["Config Missing"]
+    ConfigNo --> Fail["Abort with error"]
+    CheckResult --> ConfigOK["Config OK"]
+    ConfigOK --> PF2["Check current branch"]
+    PF2 --> PF3{"Protected branch?"}
+    PF3 --> NotProtected["Not Protected"]
+    NotProtected --> Proceed["Continue to workflow"]
+    PF3 --> IsProtected["Is Protected"]
+    IsProtected --> Warn["Show warning"]
+    Warn --> C1["Commit Anyway"]
+    Warn --> C2["Create Branch"]
+    Warn --> C3["Cancel"]
+    C1 --> Proceed
+    C2 --> NewBranch["Create new branch"]
+    NewBranch --> Proceed
+    C3 --> Abort(["Abort"])
+    </pre>
+  </div>
+
+  <div class="key-points">
+    <h4>Key Takeaways</h4>
+    <ul>
+      <li>Git config is verified before any operation can proceed</li>
+      <li>Protected branches (main, master, develop, release/*) trigger warnings</li>
+      <li>Users always get a choice: proceed, branch, or cancel</li>
+    </ul>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToStep(3)">&larr; Previous</button>
+    <button class="nav-btn" onclick="goToStep(5)">Next &rarr;</button>
+  </div>
+</section>
+
+<!-- Step 6: Change Analysis -->
+<section class="step" data-step="5">
+  <div class="step-badge">Step 6 of 9</div>
+  <h2>Parallel Change Analysis</h2>
+
+  <p>
+    The agent runs multiple git commands in parallel to gather context. This is a deliberate performance pattern: independent reads can happen simultaneously rather than sequentially.
+  </p>
+  <p>
+    The agent examines which files are staged versus unstaged, the full diff of all changes, and recent commit patterns for context. For the <code>/create-pr</code> command, this phase also gathers PR-specific context including all commits since diverging from the base branch.
+  </p>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">.claude/commands/commit-all.md:38-51</div>
+    <button class="copy-btn" data-copy="analysis">Copy</button>
+    <div class="code-block"><pre><span class="code-line"><span class="line-num">38</span><span class="tok-tag">### 1. Read All Changes</span></span>
+<span class="code-line"><span class="line-num">39</span>Run in parallel:</span>
+<span class="code-line highlight"><span class="line-num">40</span>- Run: Bash(<span class="tok-fn">git status</span>)</span>
+<span class="code-line highlight"><span class="line-num">41</span>- Run: Bash(<span class="tok-fn">git diff --cached --stat</span>)</span>
+<span class="code-line highlight"><span class="line-num">42</span>- Run: Bash(<span class="tok-fn">git diff --cached</span>)</span>
+<span class="code-line highlight"><span class="line-num">43</span>- Run: Bash(<span class="tok-fn">git diff --stat</span>)</span>
+<span class="code-line highlight"><span class="line-num">44</span>- Run: Bash(<span class="tok-fn">git diff</span>)</span>
+<span class="code-line highlight"><span class="line-num">45</span>- Run: Bash(<span class="tok-fn">git log --oneline -5</span>)</span>
+<span class="code-line"><span class="line-num">46</span></span>
+<span class="code-line"><span class="line-num">47</span><span class="tok-tag">### 2. Analyze Changes</span></span>
+<span class="code-line"><span class="line-num">48</span>Examine:</span>
+<span class="code-line"><span class="line-num">49</span>- Which files are staged vs unstaged</span>
+<span class="code-line"><span class="line-num">50</span>- Full diff of all changes</span>
+<span class="code-line"><span class="line-num">51</span>- Recent commit patterns for context</span></pre></div>
+  </div>
+
+  <p>
+    This data feeds the next step. The agent needs to understand the nature of changes &mdash; are they adding a feature, fixing a bug, updating docs? &mdash; to generate an appropriate commit message. The recent commit log provides pattern context so the generated message matches the project's existing style.
+  </p>
+
+  <div class="key-points">
+    <h4>Key Takeaways</h4>
+    <ul>
+      <li>Six git commands run in parallel for performance</li>
+      <li>Both staged and unstaged changes are analyzed</li>
+      <li>Recent commit history informs message style</li>
+    </ul>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToStep(4)">&larr; Previous</button>
+    <button class="nav-btn" onclick="goToStep(6)">Next &rarr;</button>
+  </div>
+</section>
+
+<!-- Step 7: Output Generation -->
+<section class="step" data-step="6">
+  <div class="step-badge">Step 7 of 9</div>
+  <h2>Output Generation</h2>
+
+  <p>
+    The agent generates output based on the analyzed changes. For git commands, this means a conventional commit message. For content commands like <code>/generate-social-content</code>, this involves launching parallel subagents that each produce platform-specific content.
+  </p>
+  <p>
+    The conventional commit format is strictly enforced: <code>type(scope): subject</code>. Types are limited to: feat, fix, docs, style, refactor, test, chore, perf. The subject must be under 72 characters, use imperative mood, and have no trailing period.
+  </p>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">.claude/commands/commit-all.md:53-58</div>
+    <button class="copy-btn" data-copy="generation">Copy</button>
+    <div class="code-block"><pre><span class="code-line"><span class="line-num">53</span><span class="tok-tag">### 3. Generate Commit Message</span></span>
+<span class="code-line highlight"><span class="line-num">54</span>- Format: <span class="tok-fn">type</span>(<span class="tok-type">scope</span>): <span class="tok-str">subject</span></span>
+<span class="code-line highlight"><span class="line-num">55</span>- Types: <span class="tok-kw">feat, fix, docs, style, refactor, test, chore, perf</span></span>
+<span class="code-line"><span class="line-num">56</span>- Scope: primary feature, directory, or component</span>
+<span class="code-line"><span class="line-num">57</span>- Subject: under 72 characters, imperative mood, no period</span>
+<span class="code-line"><span class="line-num">58</span>- Focus on the most significant change</span></pre></div>
+  </div>
+
+  <h3>Subagent Pattern (Content Commands)</h3>
+  <p>
+    Commands like <code>/generate-social-content</code> use a fan-out/fan-in pattern. The orchestrator gathers context, then launches one subagent per platform simultaneously. Each subagent writes to a separate file. After all complete, a humanizer subagent post-processes the output to remove AI writing patterns.
+  </p>
+
+  <div class="diagram-container">
+    <h4>Parallel Subagent Architecture</h4>
+    <pre class="mermaid">
+flowchart TD
+    Orch["Orchestrator"] --> S1["LinkedIn Agent"]
+    Orch --> S2["Twitter Agent"]
+    Orch --> S3["Instagram Agent"]
+    Orch --> SN["Other Agents"]
+    S1 --> Out1["linkedin.md"]
+    S2 --> Out2["twitter-x.md"]
+    S3 --> Out3["instagram.md"]
+    SN --> OutN["platform.md"]
+    Out1 --> H["Humanizer Agent"]
+    Out2 --> H
+    Out3 --> H
+    OutN --> H
+    H --> Summary["summary.md"]
+    </pre>
+  </div>
+
+  <div class="key-points">
+    <h4>Key Takeaways</h4>
+    <ul>
+      <li>Conventional commit format strictly enforced across all git commands</li>
+      <li>Content commands use parallel subagents for concurrent generation</li>
+      <li>A humanizer post-processing step removes AI writing patterns</li>
+    </ul>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToStep(5)">&larr; Previous</button>
+    <button class="nav-btn" onclick="goToStep(7)">Next &rarr;</button>
+  </div>
+</section>
+
+<!-- Step 8: User Approval -->
+<section class="step" data-step="7">
+  <div class="step-badge">Step 8 of 9</div>
+  <h2>User Approval Gate</h2>
+
+  <p>
+    No destructive operation executes without explicit user confirmation. The agent presents the generated output and asks the user to choose from numbered options. This is the critical safety gate across all commands.
+  </p>
+  <p>
+    If the user picks "Suggest Again," the flow loops back to the generation step. The approval pattern is consistent, but the interaction mechanism differs per tool: Claude Code uses inline chat prompts, OpenCode uses the <code>question</code> tool with structured YAML, and Kilo Code uses <code>ask_user</code>.
+  </p>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">.claude/commands/commit-all.md:60-69</div>
+    <button class="copy-btn" data-copy="approval">Copy</button>
+    <div class="code-block"><pre><span class="code-line"><span class="line-num">60</span><span class="tok-tag">### 4. Present to User</span></span>
+<span class="code-line"><span class="line-num">61</span>Show the proposed commit message and ask in chat:</span>
+<span class="code-line"><span class="line-num">62</span></span>
+<span class="code-line"><span class="line-num">63</span>   <span class="tok-str">Commit message ready. What would you like to do?</span></span>
+<span class="code-line"><span class="line-num">64</span></span>
+<span class="code-line highlight"><span class="line-num">65</span>   <span class="tok-num">1.</span> <span class="tok-kw">Accept</span> &mdash; Stage all and commit with this message</span>
+<span class="code-line highlight"><span class="line-num">66</span>   <span class="tok-num">2.</span> <span class="tok-kw">Suggest Again</span> &mdash; Generate an alternative commit message</span>
+<span class="code-line highlight"><span class="line-num">67</span>   <span class="tok-num">3.</span> <span class="tok-kw">Cancel</span> &mdash; Abort the commit</span>
+<span class="code-line"><span class="line-num">68</span></span>
+<span class="code-line"><span class="line-num">69</span>   Reply with the number.</span></pre></div>
+  </div>
+
+  <h3>Cross-Tool Comparison</h3>
+  <table class="cmd-table">
+    <thead>
+      <tr><th>Action</th><th>Claude Code</th><th>OpenCode</th><th>Kilo Code</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Run bash</td>
+        <td><code>Bash(git status)</code></td>
+        <td><code>Run: git status</code></td>
+        <td><code>execute_command</code></td>
+      </tr>
+      <tr>
+        <td>Ask user</td>
+        <td>Inline numbered prompt</td>
+        <td><code>question</code> tool (YAML)</td>
+        <td><code>ask_user</code></td>
+      </tr>
+      <tr>
+        <td>Subagents</td>
+        <td><code>Task</code> tool</td>
+        <td><code>Task</code> tool</td>
+        <td><code>new_task()</code></td>
+      </tr>
+      <tr>
+        <td>Write files</td>
+        <td><code>Write</code> tool</td>
+        <td>Agent handles</td>
+        <td><code>write_to_file</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="key-points">
+    <h4>Key Takeaways</h4>
+    <ul>
+      <li>Every significant action requires explicit user confirmation</li>
+      <li>"Suggest Again" creates a feedback loop back to generation</li>
+      <li>Interaction patterns differ per AI tool, but the approval flow is identical</li>
+    </ul>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToStep(6)">&larr; Previous</button>
+    <button class="nav-btn" onclick="goToStep(8)">Next &rarr;</button>
+  </div>
+</section>
+
+<!-- Step 9: Execution -->
+<section class="step" data-step="8">
+  <div class="step-badge">Step 9 of 9</div>
+  <h2>Execution and Error Handling</h2>
+
+  <p>
+    On user acceptance, the agent executes the operation. For <code>/commit-all</code>, this means staging all files and committing. For <code>/push-all</code>, an additional push to remote follows. For <code>/create-pr</code>, execution spans two full phases: first commit and push, then PR creation.
+  </p>
+  <p>
+    Every error path has a specific, actionable message. The <code>/create-pr</code> command demonstrates the most sophisticated fallback chain in the repository: try <code>gh</code> CLI, offer to install via <code>brew</code>, offer to authenticate, and finally fall back to opening a browser compare URL.
+  </p>
+
+  <div class="code-block-wrapper">
+    <div class="file-badge">.claude/commands/commit-all.md:72-82</div>
+    <button class="copy-btn" data-copy="execution">Copy</button>
+    <div class="code-block"><pre><span class="code-line"><span class="line-num">72</span><span class="tok-tag">### 5. Handle Response</span></span>
+<span class="code-line highlight"><span class="line-num">73</span>- If response = <span class="tok-str">"Accept"</span>:</span>
+<span class="code-line highlight"><span class="line-num">74</span>    Run Bash(<span class="tok-fn">git add . &amp;&amp; git commit -m "YOUR_COMMIT_MESSAGE"</span>)</span>
+<span class="code-line"><span class="line-num">75</span>- If response = <span class="tok-str">"Suggest Again"</span>: Generate new message, present again</span>
+<span class="code-line"><span class="line-num">76</span>- If response = <span class="tok-str">"Cancel"</span>: Abort with <span class="tok-str">"Commit cancelled."</span></span>
+<span class="code-line"><span class="line-num">77</span></span>
+<span class="code-line"><span class="line-num">78</span><span class="tok-tag">## Error Handling</span></span>
+<span class="code-line"><span class="line-num">79</span></span>
+<span class="code-line highlight"><span class="line-num">80</span>- <span class="tok-kw">Nothing to commit</span>: <span class="tok-str">"Nothing to commit. No changes detected."</span></span>
+<span class="code-line highlight"><span class="line-num">81</span>- <span class="tok-kw">Commit hook failed</span>: Show hook error and suggestions to fix</span>
+<span class="code-line highlight"><span class="line-num">82</span>- <span class="tok-kw">Staging failed</span>: <span class="tok-str">"Failed to stage changes. Check file permissions."</span></span></pre></div>
+  </div>
+
+  <h3>Graceful Degradation: /create-pr Fallback Chain</h3>
+  <div class="diagram-container">
+    <h4>PR Creation Fallback</h4>
+    <pre class="mermaid">
+flowchart TD
+    Start(["Create PR"]) --> Check{"gh installed?"}
+    Check --> HasGH["gh Installed"]
+    HasGH --> Auth{"gh authenticated?"}
+    Check --> NoGH["gh Not Installed"]
+    NoGH --> Install{"Install via brew?"}
+    Install --> DoInstall["brew install gh"]
+    DoInstall --> InstallGH["gh Installed"]
+    InstallGH --> Auth
+    Install --> SkipInstall["Skip Install"]
+    SkipInstall --> Browser["Open browser URL"]
+    Auth --> IsAuth["Authenticated"]
+    IsAuth --> Create["gh pr create"]
+    Auth --> NotAuth["Not Authenticated"]
+    NotAuth --> Login{"Run gh auth login?"}
+    Login --> DoLogin["gh auth login"]
+    DoLogin --> Create
+    Login --> SkipLogin["Skip Login"]
+    SkipLogin --> Browser
+    Create --> Success["Success"]
+    Success --> Done(["Show PR URL"])
+    Create --> Failed["Failed"]
+    Failed --> Browser
+    Browser --> Manual(["User creates PR manually"])
+    </pre>
+  </div>
+
+  <h3>Error Handling Pattern</h3>
+  <p>
+    Every command file ends with an <code>## Error Handling</code> section that enumerates specific failure modes with exact messages and recovery actions. The pattern is consistent: detect, inform with a specific message, offer recovery options.
+  </p>
+
+  <table class="cmd-table">
+    <thead>
+      <tr><th>Error</th><th>Message</th><th>Recovery</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Git config missing</td><td><code>Git user not configured. Set git config user.name first.</code></td><td>User sets config</td></tr>
+      <tr><td>Remote missing</td><td><code>No remote configured. Add a remote with: git remote add origin &lt;url&gt;</code></td><td>User adds remote</td></tr>
+      <tr><td>Nothing to commit</td><td><code>Nothing to commit. No changes detected.</code></td><td>Skip or abort</td></tr>
+      <tr><td>Push rejected</td><td>Suggest pull first or force push with caution</td><td>User pulls or force-pushes</td></tr>
+      <tr><td>gh not installed</td><td>Offer install or browser fallback</td><td>Fallback chain</td></tr>
+    </tbody>
+  </table>
+
+  <div class="key-points">
+    <h4>Key Takeaways</h4>
+    <ul>
+      <li>Execution only happens after explicit user approval</li>
+      <li>Every error path provides specific, actionable recovery steps</li>
+      <li>Complex commands use multi-level fallback chains for graceful degradation</li>
+    </ul>
+  </div>
+
+  <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:32px;text-align:center;">
+    <p style="font-size:16px;font-weight:600;color:var(--accent);margin-bottom:8px;">Tour Complete</p>
+    <p style="font-size:14px;color:var(--text-dim);margin-bottom:0;">You've walked through the full execution flow of CommandKenobi &mdash; from command discovery to execution. Explore the repository to see all 9 commands across all 3 formats.</p>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goToStep(7)">&larr; Previous</button>
+    <button class="nav-btn" onclick="goToStep(0)">Restart Tour &rarr;</button>
+  </div>
+</section>
+
+</main>
+
+<noscript>
+<div class="noscript-msg">
+JavaScript is required for interactive navigation and diagram rendering.
+All tour steps are shown below in document order.
+</div>
+</noscript>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  securityLevel: 'loose',
+  flowchart: {
+    useMaxWidth: true,
+    htmlLabels: true,
+    curve: 'monotoneX',
+    padding: 25,
+    nodeSpacing: 60,
+    rankSpacing: 80
+  }
+});
+mermaid.parseError = function(err, hash) {
+  console.warn('Mermaid parse error:', err);
+};
+window.addEventListener('load', function() {
+  document.querySelectorAll('.mermaid[data-processed="true"]').forEach(function(el) {
+    if (!el.querySelector('svg')) {
+      el.classList.add('mermaid-error');
+      el.setAttribute('title', 'Diagram could not render - showing source');
+    }
+  });
+});
+
+var currentStep = 0;
+var totalSteps = 9;
+
+function goToStep(n) {
+  if (n < 0 || n >= totalSteps) return;
+  document.querySelectorAll('.step').forEach(function(s) { s.classList.remove('active'); });
+  document.querySelectorAll('.step-list li').forEach(function(li) { li.classList.remove('active'); });
+  document.querySelector('.step[data-step="' + n + '"]').classList.add('active');
+  document.querySelector('.step-list li[data-step="' + n + '"]').classList.add('active');
+  currentStep = n;
+  document.getElementById('progress-fill').style.width = ((n + 1) / totalSteps * 100) + '%';
+  document.getElementById('progress-text').textContent = 'Step ' + (n + 1) + ' of ' + totalSteps;
+  window.scrollTo(0, 0);
+  document.getElementById('content').scrollTop = 0;
+}
+
+document.querySelectorAll('.step-list li').forEach(function(li) {
+  li.addEventListener('click', function() {
+    goToStep(parseInt(this.getAttribute('data-step')));
+    var sidebar = document.getElementById('sidebar');
+    if (sidebar.classList.contains('expanded')) sidebar.classList.remove('expanded');
+  });
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goToStep(currentStep + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goToStep(currentStep - 1); }
+});
+
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  document.body.classList.toggle('light');
+  this.textContent = document.body.classList.contains('light') ? '\u263E' : '\u2606';
+});
+
+var menuToggle = document.getElementById('menu-toggle');
+if (menuToggle) {
+  menuToggle.addEventListener('click', function() {
+    document.getElementById('sidebar').classList.toggle('expanded');
+  });
+}
+
+function copyCode(btn) {
+  var wrapper = btn.closest('.code-block-wrapper');
+  var codeBlock = wrapper.querySelector('.code-block pre');
+  var lines = codeBlock.querySelectorAll('.code-line');
+  var text = [];
+  lines.forEach(function(line) {
+    var clone = line.cloneNode(true);
+    var lineNum = clone.querySelector('.line-num');
+    if (lineNum) lineNum.remove();
+    text.push(clone.textContent);
+  });
+  navigator.clipboard.writeText(text.join('\n')).then(function() {
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+  });
+}
+</script>
+</body>
+</html>
