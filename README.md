@@ -1,12 +1,12 @@
 # CommandKenobi
 
-A repository of slash command specifications for git operations and planning workflows. Write once, run across three AI coding assistants.
+A repository of slash command specifications for git operations, planning, documentation, and content generation. Write once, run across three AI coding assistants.
 
 **Supported Tools:** OpenCode | Claude Code | Kilo Code
 
 ## Overview
 
-This repository provides the same command specifications in three formats so they work across multiple AI coding assistants. Each command provides a structured workflow for common development tasks, ensuring consistent and safe git operations.
+This repository provides the same command specifications in three formats so they work across multiple AI coding assistants. Each command provides a structured workflow for common development tasks — safe git operations, feature planning, documentation, and content generation.
 
 ### Quick Start
 
@@ -54,6 +54,7 @@ The repository provides pre-defined command specifications that:
 - Provide user approval workflows before destructive operations
 - Standardize commit message formatting across projects
 - Facilitate feature planning through structured interviews
+- Generate documentation, onboarding tours, social content, and harness maps
 - Work across OpenCode, Claude Code, and Kilo Code
 
 ### Why It Exists
