@@ -10,19 +10,37 @@ This repository provides the same command specifications in three formats so the
 
 ### Quick Start
 
-Pick your tool and you're ready to go — no configuration needed.
+Commands are auto-discovered from these directories — no configuration needed:
 
-| Tool | Directory | Setup |
-|------|-----------|-------|
-| **OpenCode** | `.opencode/commands/` | Clone repo, commands auto-discovered |
-| **Claude Code** | `.claude/commands/` | Clone repo, commands auto-discovered |
-| **Kilo Code** | `.kilocode/workflows/` | Clone repo, workflows auto-discovered |
+| Tool | Per-project directory | Global directory |
+|------|-----------------------|------------------|
+| **OpenCode** | `.opencode/commands/` | `~/.config/opencode/command/` |
+| **Claude Code** | `.claude/commands/` | `~/.claude/commands/` |
+| **Kilo Code** | `.kilocode/workflows/` | `~/.kilocode/workflows/` |
+
+**Option A — Install into one project** (commands available in that project only):
 
 ```bash
-# Clone into any of your projects
-git clone <this-repo-url> .
+git clone https://github.com/obiwancenobi/CommandKenobi.git /tmp/commandkenobi
+cp -r /tmp/commandkenobi/.opencode /tmp/commandkenobi/.claude /tmp/commandkenobi/.kilocode /tmp/commandkenobi/templates /path/to/your-project/
+```
 
-# Then use in your AI assistant:
+**Option B — Install globally** (commands available in every project):
+
+```bash
+git clone https://github.com/obiwancenobi/CommandKenobi.git /tmp/commandkenobi
+mkdir -p ~/.claude/commands ~/.claude/templates ~/.config/opencode/command ~/.kilocode/workflows
+cp /tmp/commandkenobi/.claude/commands/*.md ~/.claude/commands/
+cp /tmp/commandkenobi/templates/*.html ~/.claude/templates/
+cp /tmp/commandkenobi/.opencode/commands/*.md ~/.config/opencode/command/
+cp /tmp/commandkenobi/.kilocode/workflows/*.md ~/.kilocode/workflows/
+```
+
+Only copy the directories for the tools you use. `templates/` is shared by all three tools and needed by `/harness-map` (globally it lives at `~/.claude/templates/`, which all formats use as fallback).
+
+Then use in your AI assistant:
+
+```
 /commit-all
 /push-staged
 /create-pr
@@ -62,7 +80,7 @@ This repository exists to:
 
 ### Available Commands
 
-All 9 commands are available across OpenCode, Claude Code, and Kilo Code.
+All 10 commands are available across OpenCode, Claude Code, and Kilo Code.
 
 | Command | Description | OpenCode | Claude Code | Kilo Code |
 |---------|-------------|:--------:|:-----------:|:---------:|
@@ -75,6 +93,7 @@ All 9 commands are available across OpenCode, Claude Code, and Kilo Code.
 | `/plan-interview` | Interview to expand a spec from prompt | `.opencode/` | `.claude/` | `.kilocode/` |
 | `/generate-social-content` | Generate social media content across platforms with parallel subagents | `.opencode/` | `.claude/` | `.kilocode/` |
 | `/generate-onboarding` | Generate a guided code tour as a standalone HTML file for project onboarding | `.opencode/` | `.claude/` | `.kilocode/` |
+| `/harness-map` | Generate an interactive force-graph map of the current agent harness | `.opencode/` | `.claude/` | `.kilocode/` |
 
 ### Command File Structure
 
@@ -240,24 +259,11 @@ Use ask_user:
 
 ### Setup Instructions
 
-#### For OpenCode Users
+See [Quick Start](#quick-start) for installation (per-project or global). Tool-specific notes:
 
-1. Clone or copy this repository to your project
-2. Commands are auto-discovered from `.opencode/commands/*.md`
-3. Use `/commit-all`, `/push-staged`, etc. in your conversation
-
-#### For Claude Code Users
-
-1. Clone or copy this repository to your project
-2. Commands are auto-discovered from `.claude/commands/*.md`
-3. Use `/commit-all`, `/push-staged`, etc. in your conversation
-4. Commands include `allowed-tools` in frontmatter for permission scoping
-
-#### For Kilo Code Users
-
-1. Clone or copy this repository to your project
-2. Workflows are auto-discovered from `.kilocode/workflows/*.md`
-3. Use the workflow commands in your conversation
+- **OpenCode**: commands are auto-discovered from `.opencode/commands/*.md` (or `~/.config/opencode/command/` globally)
+- **Claude Code**: commands are auto-discovered from `.claude/commands/*.md` (or `~/.claude/commands/` globally); the `allowed-tools` frontmatter scopes permissions
+- **Kilo Code**: workflows are auto-discovered from `.kilocode/workflows/*.md` (or `~/.kilocode/workflows/` globally)
 
 ### Usage Instructions
 
@@ -387,7 +393,8 @@ CommandKenobi/
 │       ├── add-documentation.md
 │       ├── plan-interview.md
 │       ├── generate-social-content.md
-│       └── generate-onboarding.md
+│       ├── generate-onboarding.md
+│       └── harness-map.md
 ├── .claude/
 │   └── commands/              # Claude Code format (allowed-tools + inline prompts)
 │       ├── commit-all.md
@@ -398,7 +405,8 @@ CommandKenobi/
 │       ├── add-documentation.md
 │       ├── plan-interview.md
 │       ├── generate-social-content.md
-│       └── generate-onboarding.md
+│       ├── generate-onboarding.md
+│       └── harness-map.md
 ├── .kilocode/
 │   └── workflows/             # Kilo Code format (plain markdown + ask_user)
 │       ├── commit-all.md
@@ -409,7 +417,10 @@ CommandKenobi/
 │       ├── add-documentation.md
 │       ├── plan-interview.md
 │       ├── generate-social-content.md
-│       └── generate-onboarding.md
+│       ├── generate-onboarding.md
+│       └── harness-map.md
+├── templates/
+│   └── harness-map.html       # Shared rendering template for /harness-map (all tools)
 ├── docs/
 │   ├── git-commit-workflow.md
 │   ├── create-pr-workflow.md
@@ -506,6 +517,16 @@ This repository has no runtime dependencies. It is a documentation-only reposito
 **Output:** `docs/onboarding.html` (or `docs/onboarding-<focus>.html` if a focus area is provided, e.g., `docs/onboarding-authentication-flow.html`) — open in any browser for a guided code tour with syntax-highlighted code and diagrams.
 
 [See workflow diagram](docs/generate-onboarding-workflow.md) for the full pipeline.
+
+### Mapping the Agent Harness with `/harness-map`
+
+1. Execute `/harness-map`
+2. AI assistant reads the rendering template at `templates/harness-map.html`
+3. Enumerates the live session harness: core tools, deferred tools, MCP servers, agent types, and all skills grouped by source
+4. Injects the fresh data into the template (rendering code is never rewritten)
+5. Saves the result and opens it (Claude Code additionally publishes it as an Artifact)
+
+**Output:** `docs/harness-map.html` — an interactive force-directed graph with search, zoom, collapse/expand, and dark/light themes.
 
 ## Best Practices
 

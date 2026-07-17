@@ -1,0 +1,716 @@
+<meta charset="utf-8">
+<title>Harness Map — Global Scope</title>
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --panel: rgba(255,255,255,0.9);
+    --ink: #26221a;
+    --ink-soft: #6b6456;
+    --line: #d8d3c6;
+    --accent: #b45a00;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --c-core: #b45a00;
+    --c-deferred: #8a6d00;
+    --c-mcp: #1f6f8b;
+    --c-agents: #6d4fa0;
+    --c-skills: #3d7a45;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16140f; --panel: rgba(30,27,20,0.9); --ink: #e8e2d4;
+      --ink-soft: #9a9182; --line: #37321f; --accent: #f0a742;
+      --c-core: #f0a742; --c-deferred: #d4c04a; --c-mcp: #5bb8d4;
+      --c-agents: #b39ddb; --c-skills: #7fc98a;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f3ee; --panel: rgba(255,255,255,0.9); --ink: #26221a;
+    --ink-soft: #6b6456; --line: #d8d3c6; --accent: #b45a00;
+    --c-core: #b45a00; --c-deferred: #8a6d00; --c-mcp: #1f6f8b;
+    --c-agents: #6d4fa0; --c-skills: #3d7a45;
+  }
+  :root[data-theme="dark"] {
+    --bg: #16140f; --panel: rgba(30,27,20,0.9); --ink: #e8e2d4;
+    --ink-soft: #9a9182; --line: #37321f; --accent: #f0a742;
+    --c-core: #f0a742; --c-deferred: #d4c04a; --c-mcp: #5bb8d4;
+    --c-agents: #b39ddb; --c-skills: #7fc98a;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); overflow: hidden;
+  }
+  #graph { position: fixed; inset: 0; cursor: grab; touch-action: none; }
+  #graph.dragging { cursor: grabbing; }
+
+  .hud {
+    position: fixed; top: 1rem; left: 1rem; z-index: 2;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 0.8rem 1rem; max-width: 300px;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .hud p.eyebrow {
+    font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 0.25rem;
+  }
+  .hud h1 { font-size: 1.05rem; margin: 0 0 0.45rem; letter-spacing: -0.01em; }
+  .hud input {
+    width: 100%; font-family: var(--mono); font-size: 0.75rem;
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 5px;
+    padding: 0.35rem 0.55rem; outline: none; margin-bottom: 0.45rem;
+  }
+  .hud input:focus { border-color: var(--accent); }
+  .hud p.hint { font-size: 0.68rem; color: var(--ink-soft); margin: 0; line-height: 1.5; }
+  .scopes { display: flex; gap: 0.25rem; margin-bottom: 0.45rem; flex-wrap: wrap; }
+  .scopes button {
+    font-family: var(--mono); font-size: 0.62rem; cursor: pointer;
+    background: transparent; color: var(--ink-soft);
+    border: 1px solid var(--line); border-radius: 4px; padding: 0.2rem 0.5rem;
+  }
+  .scopes button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .scopes button[aria-pressed="true"] {
+    color: var(--accent); border-color: var(--accent); font-weight: 600;
+  }
+
+  .legend {
+    position: fixed; bottom: 1rem; left: 1rem; z-index: 2;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 0.6rem 0.9rem; display: flex; flex-direction: column; gap: 0.3rem;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .legend div { display: flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.66rem; }
+  .legend i { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  #tooltip {
+    position: fixed; z-index: 3; pointer-events: none; display: none;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    padding: 0.4rem 0.65rem; font-family: var(--mono); font-size: 0.7rem;
+    max-width: 260px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  #tooltip b { color: var(--accent); }
+  #tooltip span { color: var(--ink-soft); display: block; margin-top: 2px; font-size: 0.62rem; }
+</style>
+
+<div class="hud">
+  <p class="eyebrow">claude code · global scope</p>
+  <h1>Harness Map</h1>
+  <input id="search" type="search" placeholder="search 300+ nodes…" aria-label="Search nodes" />
+  <div class="scopes" id="scopes" role="group" aria-label="Filter by scope">
+    <button data-scope="all" aria-pressed="true">all</button>
+    <button data-scope="built-in" aria-pressed="false">built-in</button>
+    <button data-scope="global" aria-pressed="false">global</button>
+    <button data-scope="project" aria-pressed="false">project</button>
+    <button data-scope="plugin" aria-pressed="false">plugin</button>
+  </div>
+  <p class="hint">Drag nodes · scroll / pinch to zoom · drag background to pan · double-click background to reset · click a hub or cluster to expand/collapse · hover for detail.</p>
+</div>
+
+<div class="legend">
+  <div><i style="background:var(--c-core)"></i> core tools</div>
+  <div><i style="background:var(--c-deferred)"></i> deferred tools</div>
+  <div><i style="background:var(--c-mcp)"></i> MCP servers</div>
+  <div><i style="background:var(--c-agents)"></i> agent types</div>
+  <div><i style="background:var(--c-skills)"></i> skills</div>
+</div>
+
+<canvas id="graph"></canvas>
+<div id="tooltip"></div>
+
+<script>
+(() => {
+  'use strict';
+  const canvas = document.getElementById('graph');
+  const ctx = canvas.getContext('2d');
+  const tooltip = document.getElementById('tooltip');
+  const searchBox = document.getElementById('search');
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+  // DATA:BEGIN — regenerate this section from the live session harness.
+  // Tree spec: { label, sub?, count?, kids?: [...] }. Node size scales with count.
+  // P: [name, desc, scope?] pairs → node specs. scope: built-in | global | project | plugin (inherits from parent if omitted)
+  const P = a => a.map(x => Array.isArray(x) ? { label: x[0], sub: x[1], scope: x[2] } : { label: x });
+  const TREE = {
+    label: 'claude', sub: 'fable 5 · this session', kids: [
+      { label: 'core tools', sub: '12 · callable now', colorVar: '--c-core', scope: 'built-in', kids: P([
+        ['Bash','execute shell commands'], ['Read','read files, images, PDFs'],
+        ['Edit','exact string replacement in files'], ['Write','create / overwrite files'],
+        ['Agent','spawn subagents for complex tasks'], ['Workflow','deterministic multi-agent scripts'],
+        ['Skill','invoke packaged skill instructions'], ['AskUserQuestion','blocking multiple-choice question'],
+        ['Artifact','publish HTML/MD as private web page'], ['ReportFindings','typed code-review findings'],
+        ['ToolSearch','load deferred tool schemas'], ['ScheduleWakeup','self-pace /loop iterations'],
+      ])},
+      { label: 'deferred', sub: '24 · via ToolSearch', colorVar: '--c-deferred', scope: 'built-in', kids: P([
+        ['TaskCreate','create tracked background task'], ['TaskGet','read task details'],
+        ['TaskList','list session tasks'], ['TaskOutput','fetch background task output'],
+        ['TaskStop','stop a running task'], ['TaskUpdate','update task status'],
+        ['EnterPlanMode','start read-only planning'], ['ExitPlanMode','present plan for approval'],
+        ['EnterWorktree','work in isolated git worktree'], ['ExitWorktree','leave/merge worktree'],
+        ['CronCreate','schedule recurring cloud agent'], ['CronDelete','remove scheduled agent'],
+        ['CronList','list scheduled agents'], ['WebFetch','fetch and read a URL'],
+        ['WebSearch','search the web'], ['ListMcpResourcesTool','list MCP server resources'],
+        ['ReadMcpResourceTool','read one MCP resource'], ['ReadMcpResourceDirTool','read MCP resource dir'],
+        ['LSP','language-server queries (defs, refs)'], ['Monitor','wait on a condition'],
+        ['NotebookEdit','edit Jupyter notebook cells'], ['PushNotification','send push notification'],
+        ['RemoteTrigger','trigger remote runs'], ['SendMessage','message a spawned agent'],
+        ['DesignSync','sync design assets'],
+      ])},
+      { label: 'MCP servers', sub: '9 servers · ~180 tools', colorVar: '--c-mcp', kids: [
+        { label: 'Linear', sub: '~50 tools · issues, projects, docs', count: 50, scope: 'global' },
+        { label: 'n8n-mcp', sub: '~33 tools · workflow SDK', count: 33, scope: 'global' },
+        { label: 'n8n-beetlix', sub: '~33 tools · beetlix instance', count: 33, scope: 'global' },
+        { label: 'claude-mem', sub: '~20 tools · observation search', count: 20, scope: 'plugin' },
+        { label: 'firebase', sub: '~20 tools · deploy, config', count: 20, scope: 'plugin' },
+        { label: 'slack', sub: '~20 tools · messages, canvases', count: 20, scope: 'plugin' },
+        { label: 'posthog', sub: '1 exec tool · ~60 domains', count: 1, scope: 'plugin' },
+        { label: 'context7', sub: '2 tools · library docs', count: 2, scope: 'plugin' },
+        { label: 'gdrive', sub: '2 tools · auth only', count: 2, scope: 'global' },
+      ]},
+      { label: 'agents', sub: '13 types · Agent tool', colorVar: '--c-agents', kids: P([
+        ['general-purpose','research + multi-step tasks','built-in'], ['Explore','read-only fan-out code search','built-in'],
+        ['Plan','implementation planning architect','built-in'], ['claude','catch-all default agent','built-in'],
+        ['claude-code-guide','Claude Code / API / SDK questions','built-in'], ['code-simplifier','simplify code, keep behavior','plugin'],
+        ['code-architect','feature implementation blueprints','plugin'], ['code-explorer','trace existing features','plugin'],
+        ['code-reviewer','bug / security / quality review','plugin'], ['wiki-ingest','parallel obsidian ingestion','plugin'],
+        ['wiki-lint','obsidian vault health check','plugin'], ['error-analyzer','PostHog error pattern analysis','plugin'],
+        ['statusline-setup','configure status line','built-in'],
+      ])},
+      { label: 'skills', sub: '~260 · Skill tool · click clusters', colorVar: '--c-skills', kids: [
+        { label: 'posthog', sub: 'analytics, errors, LLM obs', collapsed: true, scope: 'plugin', kids: P([
+          ['analyzing-expensive-users','find high-cost users'],
+          ['analyzing-experiment-session-replays','replays per experiment arm'],
+          ['assessing-heatmaps','evaluate page heatmaps'],
+          ['auditing-endpoints','audit query endpoints'],
+          ['auditing-experiments-flags','audit experiments & flags'],
+          ['auditing-warehouse-source-health','warehouse source health'],
+          ['auditing-warehouse-view-health','warehouse view health'],
+          ['authoring-error-tracking-alerts','error alert rules'],
+          ['authoring-log-alerts','log alert rules'],
+          ['authoring-scouts','write AI monitoring scouts'],
+          ['building-workflows','build PostHog workflows'],
+          ['checking-deploy-timing','correlate deploys & metrics'],
+          ['choosing-trend-or-slope-view','pick trend vs slope view'],
+          ['cleaning-up-stale-feature-flags','remove stale flags'],
+          ['configuring-experiment-analytics','experiment metrics setup'],
+          ['configuring-experiment-rollout','experiment rollout config'],
+          ['consuming-endpoints-from-client-code','call endpoints from app code'],
+          ['copying-flags-across-projects','copy flags between projects'],
+          ['creating-ai-subscription','AI-generated report subscriptions'],
+          ['creating-an-endpoint','saved query as endpoint'],
+          ['creating-experiments','set up A/B tests'],
+          ['creating-online-evaluations','LLM online evals'],
+          ['creating-replay-vision-scanners','visual replay scanners'],
+          ['debugging-local-replay','debug local replay capture'],
+          ['debugging-signals-pipeline','debug signals pipeline'],
+          ['debugging-surveys','debug survey delivery'],
+          ['designing-email-templates','email template design'],
+          ['diagnosing-ci-and-merge-bottlenecks','CI / merge bottlenecks'],
+          ['diagnosing-endpoint-performance','diagnose slow endpoints'],
+          ['diagnosing-experiment-results','explain odd experiment results'],
+          ['diagnosing-failed-warehouse-syncs','diagnose failed syncs'],
+          ['diagnosing-missing-recordings','find missing replays'],
+          ['diagnosing-sdk-health','SDK ingestion health'],
+          ['diagnosing-stacktrace-symbolication','sourcemap symbolication'],
+          ['downloading-batch-export-files','download batch exports'],
+          ['exploring-ai-failures','browse LLM failures'],
+          ['exploring-apm-traces','APM trace explorer'],
+          ['exploring-autocapture-events','browse autocapture events'],
+          ['exploring-endpoint-execution-logs','endpoint execution logs'],
+          ['exploring-live-traffic','live event stream'],
+          ['exploring-llm-clusters','LLM conversation clusters'],
+          ['exploring-llm-costs','LLM spend breakdown'],
+          ['exploring-llm-evaluations','browse eval results'],
+          ['exploring-llm-traces','LLM trace browser'],
+          ['exploring-mcp-intent-clusters','MCP intent clusters'],
+          ['exploring-mcp-sessions','browse MCP sessions'],
+          ['exploring-mcp-tool-quality','MCP tool quality'],
+          ['exploring-mcp-tool-usage','MCP tool usage stats'],
+          ['exploring-replay-vision-observations','vision scanner output'],
+          ['exploring-scouts','browse scout results'],
+          ['feature-usage-feed','feature usage feed'],
+          ['filtering-bot-traffic','exclude bot traffic'],
+          ['finding-deleted-feature-flags','recover deleted flags'],
+          ['finding-experiments','locate experiments'],
+          ['finding-replay-for-issue','replay for an error'],
+          ['finding-sessions-to-watch','surface interesting sessions'],
+          ['formatting-insight-axes','insight axis formatting'],
+          ['grouping-noisy-errors','merge noisy error groups'],
+          ['improving-mcp-tools','improve MCP tool definitions'],
+          ['inbox-exploration','PostHog inbox triage'],
+          ['instrument-error-tracking','add error tracking to app'],
+          ['instrument-feature-flags','add feature flags to app'],
+          ['instrument-integration','add PostHog integrations'],
+          ['instrument-llm-analytics','add LLM analytics'],
+          ['instrument-logs','add log capture'],
+          ['instrument-product-analytics','add event tracking'],
+          ['investigate-metric','investigate a metric move'],
+          ['investigating-error-issue','root-cause an error issue'],
+          ['investigating-metric-anomalies','metric anomaly investigation'],
+          ['investigating-replay','deep-dive a session replay'],
+          ['llma-cc-ingest','ingest Claude Code transcripts'],
+          ['llma-cc-setup','set up CC LLM analytics'],
+          ['llma-cc-status','CC analytics status'],
+          ['managing-endpoint-versions','endpoint versioning'],
+          ['managing-experiment-lifecycle','experiment lifecycle'],
+          ['managing-path-cleaning-rules','URL path cleaning rules'],
+          ['managing-reminders','manage reminders'],
+          ['managing-subscriptions','manage report subscriptions'],
+          ['planning-voice-agent-user-interviews','voice interview planning'],
+          ['querying-posthog-data','SQL / HogQL queries'],
+          ['resolving-ingestion-warnings','fix ingestion warnings'],
+          ['setting-up-a-custom-rest-source','custom REST warehouse source'],
+          ['setting-up-a-data-warehouse-source','warehouse source setup'],
+          ['signals','signals system overview'],
+          ['skills-store','browse PostHog skills store'],
+          ['suggesting-data-imports','suggest data imports'],
+          ['suppressing-noisy-errors','mute noisy errors'],
+          ['triaging-error-issues','error issue triage'],
+          ['triaging-visual-review-runs','visual review triage'],
+          ['tuning-incremental-sync-config','incremental sync tuning'],
+          ['turning-engineering-analytics-into-insights','eng analytics → insights'],
+          ['working-with-skills','PostHog skills how-to'],
+        ])},
+        { label: 'posthog scouts', sub: 'signals-scout-* monitors', collapsed: true, scope: 'plugin', kids:
+          ['ai-observability','anomaly-detection','apm','csp-violations','customer-analytics',
+           'data-pipelines','data-warehouse','error-tracking','experiments','feature-flags','general',
+           'health-checks','inbox-validation','ingestion-warnings','insight-alerts','logs',
+           'mcp-tool-calls','observability-gaps','product-analytics','replay-vision','revenue-analytics',
+           'session-replay','skills-store','surveys','web-analytics','web-vitals']
+           .map(l => ({ label: 'signals-scout-' + l, sub: 'auto-monitor: ' + l.replace(/-/g, ' ') })) },
+        { label: 'marketing/CRO', sub: 'seo, ads, email, funnels', collapsed: true, scope: 'project', kids: P([
+          ['ab-test-setup','plan A/B tests'], ['ad-creative','ad copy & creatives'],
+          ['ai-seo','rank in AI answers (AEO/GEO)'], ['analytics-tracking','tracking plan'],
+          ['churn-prevention','reduce churn'], ['cold-email','cold outreach copy'],
+          ['competitor-alternatives','comparison / alternative pages'], ['content-strategy','content planning'],
+          ['copy-editing','edit marketing copy'], ['copywriting','write marketing copy'],
+          ['email-sequence','drip email sequences'], ['form-cro','form conversion'],
+          ['free-tool-strategy','engineering-as-marketing'], ['launch-strategy','product launch plans'],
+          ['lead-magnets','lead magnet ideas'], ['marketing-ideas','139 proven tactics'],
+          ['marketing-psychology','persuasion principles'], ['onboarding-cro','onboarding conversion'],
+          ['page-cro','landing page conversion'], ['paid-ads','paid campaign setup'],
+          ['paywall-upgrade-cro','upgrade conversion'], ['popup-cro','popup conversion'],
+          ['pricing-strategy','pricing design'], ['product-marketing-context','gather product context'],
+          ['programmatic-seo','SEO pages at scale'], ['referral-program','referral loops'],
+          ['sales-enablement','sales collateral'], ['schema-markup','structured data'],
+          ['seo-audit','technical SEO audit'], ['signup-flow-cro','signup conversion'],
+          ['site-architecture','site structure for SEO'], ['social-content','social media content'],
+        ])},
+        { label: 'impeccable', sub: 'design suite', collapsed: true, scope: 'project', kids: P([
+          ['adapt','responsive across devices'], ['animate','motion & transitions'],
+          ['arrange','layout & spacing rhythm'], ['audit','a11y / perf quality scan'],
+          ['bolder','amplify bland design'], ['clarify','reduce UI confusion'],
+          ['colorize','palette work'], ['compress','denser UI'],
+          ['critique','design critique'], ['delight','micro-delight moments'],
+          ['distill','cut to essentials'], ['extract','tokens & components'],
+          ['frontend-design','distinctive new UI'], ['harden','error states & edge cases'],
+          ['normalize','align to design system'], ['onboard','onboarding flows'],
+          ['optimize','UI performance'], ['overdrive','maximalist visual effects'],
+          ['polish','final quality pass'], ['quieter','tone down loud design'],
+          ['teach-impeccable','set up design context'], ['typeset','typography'],
+        ])},
+        { label: 'standalone', sub: 'misc user skills', collapsed: true, scope: 'global', kids: P([
+          ['android-security-checklist','OWASP MASVS mobile audit'], ['brand-guidelines','brand rules'],
+          ['buildinpublic-post','build-in-public social posts'], ['caveman','terse token-saving mode','project'],
+          ['caveman-commit','terse commit messages','project'], ['caveman-help','caveman reference card'],
+          ['caveman-review','terse PR comments','project'], ['command-creator','build slash commands'],
+          ['comprehension-coach','verify deep understanding'], ['dependency-upgrade','major version upgrades'],
+          ['domain-name-brainstormer','domain ideas + availability'], ['find-skills','discover installable skills'],
+          ['game-changing-features','feature ideation'], ['graphify','anything → knowledge graph'],
+          ['humanizer','remove AI-writing tells'], ['impeccable','frontend design hub'],
+          ['llm-council','multi-model deliberation'], ['mermaid-diagrams','diagrams as code'],
+          ['mui','Material-UI guidance'], ['security-best-practices','secure coding'],
+          ['skill-creator','build & eval skills'], ['test-skill','test skill'],
+        ])},
+        { label: 'slash cmds', sub: 'user + project commands', collapsed: true, scope: 'global', kids: P([
+          ['add-documentation','document code / features'], ['android-16kb-compliant','16KB page-size compliance'],
+          ['cm','commit shortcut'], ['commit-all','conventional commit, all changes'],
+          ['commit-staged','commit staged only'], ['create-pr','commit, push, open PR'],
+          ['deep-research','cited multi-source research'], ['generate-onboarding','HTML guided code tour'],
+          ['generate-social-content','multi-platform posts'], ['harness-map','this map, regenerated live'],
+          ['plan-interview','interview → plan'], ['plan-interview-file','plan interview from file'],
+          ['push-all','commit + push all'], ['push-staged','push staged'],
+          ['ship','PR, babysit CI, merge on green'], ['speckit.analyze','cross-artifact consistency','project'],
+          ['speckit.checklist','quality checklist','project'], ['speckit.clarify','clarify spec','project'],
+          ['speckit.constitution','project principles','project'], ['speckit.implement','execute tasks.md','project'],
+          ['speckit.plan','planning workflow','project'], ['speckit.specify','write feature spec','project'],
+          ['speckit.tasks','generate task list','project'], ['speckit.taskstoissues','tasks → GitHub issues','project'],
+        ])},
+        { label: 'claude-mem', sub: 'memory & workflow', collapsed: true, scope: 'plugin', kids: P([
+          ['babysit','watch PR until mergeable'], ['cloud-sync','sync memory to cloud'],
+          ['design-is','design philosophy'], ['do','task runner'],
+          ['how-it-works','claude-mem internals'], ['knowledge-agent','knowledge Q&A'],
+          ['learn-codebase','deep codebase learning'], ['make-plan','plan from memory'],
+          ['mem-search','search past work'], ['oh-my-issues','issue triage'],
+          ['pathfinder','find code paths'], ['smart-explore','memory-guided exploration'],
+          ['standup','standup summary'], ['timeline-report','timeline of work'],
+          ['version-bump','bump versions'], ['weekly-digests','weekly summaries'],
+          ['what-the','explain surprising things'], ['wowerpoint','presentation generator'],
+        ])},
+        { label: 'built-in', sub: 'harness skills', collapsed: true, scope: 'built-in', kids: P([
+          ['artifact-design','artifact design fundamentals'], ['claude-api','Claude API reference'],
+          ['code-review','review diff for bugs'], ['dataviz','chart design system'],
+          ['fewer-permission-prompts','build permission allowlist'], ['init','generate CLAUDE.md'],
+          ['keybindings-help','customize shortcuts'], ['loop','recurring prompt runs'],
+          ['review','review GitHub PR'], ['run','launch app to verify'],
+          ['schedule','scheduled cloud agents'], ['security-review','security review of branch'],
+          ['simplify','cleanup changed code'], ['update-config','settings.json config'],
+          ['verify','end-to-end change verification'],
+        ])},
+        { label: 'superpowers', sub: 'process discipline', collapsed: true, scope: 'plugin', kids: P([
+          ['brainstorming','intent before building'], ['dispatching-parallel-agents','parallel subagents'],
+          ['executing-plans','run written plans'], ['finishing-a-development-branch','merge / PR decision'],
+          ['receiving-code-review','process feedback rigorously'], ['requesting-code-review','request review'],
+          ['subagent-driven-development','plan via subagents'], ['systematic-debugging','root-cause before fixing'],
+          ['test-driven-development','TDD loop'], ['using-git-worktrees','isolated workspaces'],
+          ['using-superpowers','skill discovery meta'], ['verification-before-completion','verify before done'],
+          ['writing-plans','write implementation plans'], ['writing-skills','author skills'],
+        ])},
+        { label: 'obsidian', sub: 'knowledge vault', collapsed: true, scope: 'plugin', kids: P([
+          ['autoresearch','auto research notes'], ['canvas','obsidian canvases'],
+          ['defuddle','clean web clippings'], ['obsidian-bases','bases databases'],
+          ['obsidian-markdown','obsidian-flavored md'], ['save','save to vault'],
+          ['wiki','vault setup & routing'], ['wiki-fold','condense pages'],
+          ['wiki-ingest','ingest sources'], ['wiki-lint','vault health check'],
+          ['wiki-query','query the wiki'],
+        ])},
+        { label: 'firecrawl', sub: 'web scraping', collapsed: true, scope: 'plugin', kids: P([
+          ['skill-gen','generate skills from docs'], ['firecrawl-agent','autonomous browsing'],
+          ['firecrawl-cli','CLI usage'], ['firecrawl-crawl','crawl whole sites'],
+          ['firecrawl-download','download files'], ['firecrawl-interact','interact with pages'],
+          ['firecrawl-map','map site URLs'], ['firecrawl-monitor','watch pages for change'],
+          ['firecrawl-parse','parse documents'], ['firecrawl-scrape','URL → clean markdown'],
+          ['firecrawl-search','web search + scrape'],
+        ])},
+        { label: 'slack', sub: 'messaging skills', collapsed: true, scope: 'plugin', kids: P([
+          ['channel-digest','channel digest'], ['draft-announcement','draft announcements'],
+          ['find-discussions','find discussions'], ['standup','standup from Slack'],
+          ['summarize-channel','summarize channel'], ['block-kit','Block Kit UI'],
+          ['create-slack-app','scaffold Slack app'], ['slack-api','API reference'],
+          ['slack-cli','CLI usage'], ['slack-messaging','send messages well'],
+          ['slack-search','search Slack'],
+        ])},
+        { label: 'ponytail', sub: 'lazy senior dev mode', collapsed: true, scope: 'plugin', kids: P([
+          ['ponytail','lazy senior dev mode'], ['ponytail-audit','over-engineering audit'],
+          ['ponytail-debt','track deliberate shortcuts'], ['ponytail-help','reference card'],
+          ['ponytail-review','YAGNI code review'],
+        ])},
+        { label: 'other plugins', sub: 'commit-cmds, feature-dev…', collapsed: true, scope: 'plugin', kids: P([
+          ['clean_gone','delete gone branches'], ['commit','conventional commit'],
+          ['commit-push-pr','commit, push, PR'], ['feature-dev','guided feature development'],
+          ['revise-claude-md','update CLAUDE.md'], ['claude-md-improver','audit CLAUDE.md'],
+          ['claude-automation-recommender','suggest hooks / automation'],
+          ['karpathy-guidelines','karpathy coding guidelines'],
+          ['skill-creator:skill-creator','build & eval skills'],
+        ])},
+      ]},
+    ]
+  };
+  // DATA:END
+
+  // ---- build graph ---------------------------------------------------
+  const nodes = [], links = [];
+  let idc = 0;
+  function build(spec, parent, depth, angle) {
+    const kids = spec.kids || [];
+    const count = spec.count || (kids.length ? kids.reduce((s, k) => s + (k.count || (k.kids ? k.kids.length : 1)), 0) : 1);
+    const r = depth === 0 ? 26 : depth === 1 ? 17 : kids.length ? 8 + Math.sqrt(count) * 1.1 : 4.5 + Math.sqrt(spec.count || 1) * 1.8;
+    const n = {
+      id: idc++, label: spec.label, sub: spec.sub, r, depth, count,
+      colorVar: spec.colorVar || (parent && parent.colorVar), parent,
+      scope: spec.scope || (parent && parent.scope),
+      collapsed: !!spec.collapsed, children: [], nbrs: [],
+      x: 0, y: 0, vx: 0, vy: 0, hidden: false, scopeIn: true,
+    };
+    if (parent) {
+      const dist = depth === 1 ? 260 : depth === 2 ? 130 + r * 3 : 60;
+      n.x = parent.x + Math.cos(angle) * dist;
+      n.y = parent.y + Math.sin(angle) * dist;
+      links.push({ a: parent, b: n, rest: dist });
+      parent.children.push(n);
+      parent.nbrs.push(n); n.nbrs.push(parent);
+    }
+    nodes.push(n);
+    kids.forEach((k, i) => {
+      const spread = depth === 0 ? Math.PI * 2 : depth === 1 ? 1.9 : 2.6;
+      const base = depth === 0 ? -Math.PI / 2 : angle;
+      const a = base + (kids.length > 1 ? (i / (kids.length - (depth === 0 ? 0 : 1)) - (depth === 0 ? 0 : 0.5)) * spread : 0);
+      build(k, n, depth + 1, a);
+    });
+    return n;
+  }
+  const hub = build(TREE, null, 0, 0);
+
+  let currentScope = 'all';
+  // node passes if it or any descendant matches the scope filter
+  function applyScope(n) {
+    const self = currentScope === 'all' || n.scope === currentScope;
+    let any = self;
+    n.children.forEach(c => { if (applyScope(c)) any = true; });
+    n.scopeIn = any || n === hub;
+    return any;
+  }
+  function recomputeHidden(n, hiddenByAncestor) {
+    if (n !== hub) n.hidden = hiddenByAncestor || !n.scopeIn;
+    n.children.forEach(c => recomputeHidden(c, hiddenByAncestor || n.collapsed || !n.scopeIn));
+  }
+  recomputeHidden(hub, false);
+
+  document.getElementById('scopes').addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    currentScope = btn.dataset.scope;
+    for (const b of btn.parentElement.children) b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+    applyScope(hub);
+    recomputeHidden(hub, false);
+    alpha = Math.max(alpha, 0.4);
+    draw();
+  });
+
+  // ---- simulation ----------------------------------------------------
+  let alpha = 1, dragNode = null;
+  function tick() {
+    const active = nodes.filter(n => !n.hidden);
+    // ponytail: O(n²) repulsion, fine under ~400 visible nodes
+    for (let i = 0; i < active.length; i++) {
+      for (let j = i + 1; j < active.length; j++) {
+        const a = active[i], b = active[j];
+        let dx = b.x - a.x, dy = b.y - a.y;
+        let d2 = dx * dx + dy * dy;
+        if (d2 < 1) { d2 = 1; dx = Math.random() - 0.5; dy = Math.random() - 0.5; }
+        if (d2 > 90000) continue;
+        const d = Math.sqrt(d2);
+        const f = Math.min(900 * (a.r + b.r) / d2, 8) * alpha;
+        const fx = dx / d * f, fy = dy / d * f;
+        a.vx -= fx; a.vy -= fy; b.vx += fx; b.vy += fy;
+      }
+    }
+    for (const l of links) {
+      if (l.a.hidden || l.b.hidden) continue;
+      const dx = l.b.x - l.a.x, dy = l.b.y - l.a.y;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const f = (d - l.rest) * 0.02 * alpha;
+      const fx = dx / d * f, fy = dy / d * f;
+      l.a.vx += fx; l.a.vy += fy; l.b.vx -= fx; l.b.vy -= fy;
+    }
+    for (const n of active) {
+      n.vx -= n.x * 0.0012 * alpha; n.vy -= n.y * 0.0012 * alpha;
+      if (n === dragNode) { n.vx = 0; n.vy = 0; continue; }
+      n.vx *= 0.85; n.vy *= 0.85;
+      n.x += n.vx; n.y += n.vy;
+    }
+    alpha *= 0.995;
+  }
+  if (reducedMotion) { for (let i = 0; i < 400; i++) tick(); alpha = 0; }
+
+  // ---- view / render -------------------------------------------------
+  const view = { x: 0, y: 0, k: 1 };
+  let W = 0, H = 0, dpr = 1, hoverNode = null, searchSet = null;
+
+  function highlightSet() {
+    if (searchSet) return searchSet;
+    if (hoverNode) { const s = new Set([hoverNode]); hoverNode.nbrs.forEach(n => s.add(n)); return s; }
+    return null;
+  }
+
+  function draw() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = css('--bg');
+    ctx.fillRect(0, 0, W, H);
+    ctx.translate(W / 2 + view.x, H / 2 + view.y);
+    ctx.scale(view.k, view.k);
+
+    const ink = css('--ink'), inkSoft = css('--ink-soft'), line = css('--line'), accent = css('--accent');
+    const hs = highlightSet();
+
+    ctx.lineWidth = 1 / view.k;
+    for (const l of links) {
+      if (l.a.hidden || l.b.hidden) continue;
+      ctx.globalAlpha = hs ? (hs.has(l.a) && hs.has(l.b) ? 0.9 : 0.08) : 1;
+      ctx.strokeStyle = line;
+      ctx.beginPath(); ctx.moveTo(l.a.x, l.a.y); ctx.lineTo(l.b.x, l.b.y); ctx.stroke();
+    }
+
+    for (const n of nodes) {
+      if (n.hidden) continue;
+      const inSet = !hs || hs.has(n);
+      ctx.globalAlpha = inSet ? (n.depth >= 2 ? 0.8 : 1) : 0.12;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = n === hub ? accent : css(n.colorVar);
+      ctx.fill();
+      if (n === hoverNode || (n.collapsed && n.children.length)) {
+        ctx.strokeStyle = ink; ctx.lineWidth = 2 / view.k; ctx.stroke();
+      }
+      const showLabel = n.depth <= 1 || view.k >= 1.15 || n === hoverNode || (hs && hs.has(n));
+      if (showLabel) {
+        const fs = n.depth === 0 ? 13 : n.depth === 1 ? 11 : n.children.length ? 10 : 8.5;
+        ctx.font = `${n.depth <= 1 || n.children.length ? 600 : 400} ${fs / Math.max(view.k, 1)}px ${css('--mono')}`;
+        ctx.fillStyle = n.depth >= 2 && !n.children.length ? inkSoft : ink;
+        ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x, n.y + n.r + 11 / Math.max(view.k, 1));
+      }
+      if (n.collapsed && n.children.length) {
+        ctx.font = `600 ${Math.max(7, Math.min(n.r * 0.9, 10)) / Math.max(view.k, 1)}px ${css('--mono')}`;
+        ctx.fillStyle = css('--bg');
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('+' + n.children.length, n.x, n.y);
+        ctx.textBaseline = 'alphabetic';
+      }
+    }
+    ctx.globalAlpha = 1;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    W = innerWidth; H = innerHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    draw();
+  }
+  addEventListener('resize', resize);
+
+  function loop() {
+    if (alpha > 0.02) { tick(); draw(); }
+    requestAnimationFrame(loop);
+  }
+
+  // ---- search ---------------------------------------------------------
+  searchBox.addEventListener('input', () => {
+    const q = searchBox.value.trim().toLowerCase();
+    if (q.length < 2) { searchSet = null; draw(); return; }
+    const s = new Set();
+    for (const n of nodes) {
+      if (n.label.toLowerCase().includes(q)) {
+        s.add(n);
+        // reveal + include ancestors
+        let p = n.parent;
+        while (p) { s.add(p); if (p.collapsed) p.collapsed = false; p = p.parent; }
+      }
+    }
+    recomputeHidden(hub, false);
+    searchSet = s.size ? s : null;
+    alpha = Math.max(alpha, 0.3);
+    draw();
+  });
+
+  // ---- interaction ---------------------------------------------------
+  function toWorld(px, py) {
+    return { x: (px - W / 2 - view.x) / view.k, y: (py - H / 2 - view.y) / view.k };
+  }
+  function pick(px, py) {
+    const p = toWorld(px, py);
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const n = nodes[i];
+      if (n.hidden) continue;
+      const dx = p.x - n.x, dy = p.y - n.y;
+      const hit = n.r + 4;
+      if (dx * dx + dy * dy <= hit * hit) return n;
+    }
+    return null;
+  }
+  function zoomAt(px, py, k2) {
+    k2 = Math.min(Math.max(k2, 0.2), 5);
+    const wx = (px - W / 2 - view.x) / view.k;
+    const wy = (py - H / 2 - view.y) / view.k;
+    view.x = px - W / 2 - wx * k2;
+    view.y = py - H / 2 - wy * k2;
+    view.k = k2;
+  }
+
+  const pointers = new Map();
+  let panning = false, moved = 0, last = { x: 0, y: 0 }, pinch = null;
+
+  canvas.addEventListener('pointerdown', e => {
+    canvas.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinch = { d: Math.hypot(b.x - a.x, b.y - a.y), k: view.k };
+      dragNode = null; panning = false;
+      return;
+    }
+    canvas.classList.add('dragging');
+    moved = 0; last = { x: e.clientX, y: e.clientY };
+    dragNode = pick(e.clientX, e.clientY);
+    panning = !dragNode;
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+      zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, pinch.k * d / pinch.d);
+      draw();
+      return;
+    }
+    const dx = e.clientX - last.x, dy = e.clientY - last.y;
+    if (dragNode || panning) {
+      moved += Math.abs(dx) + Math.abs(dy);
+      if (dragNode) {
+        dragNode.x += dx / view.k; dragNode.y += dy / view.k;
+        alpha = Math.max(alpha, 0.3);
+      } else {
+        view.x += dx; view.y += dy;
+      }
+      last = { x: e.clientX, y: e.clientY };
+      draw();
+    } else {
+      const n = pick(e.clientX, e.clientY);
+      if (n !== hoverNode) { hoverNode = n; draw(); }
+      if (n) {
+        tooltip.style.display = 'block';
+        tooltip.style.left = Math.min(e.clientX + 14, W - 280) + 'px';
+        tooltip.style.top = (e.clientY + 14) + 'px';
+        const extra = n.children.length ? '<span>' + n.children.length + ' items · click to ' + (n.collapsed ? 'expand' : 'collapse') + '</span>' : '';
+        let desc = n.sub || (n.parent ? 'in: ' + (n.parent.parent && n.parent.parent.parent ? n.parent.parent.label + ' / ' : '') + n.parent.label : '');
+        if (n.scope) desc += ' · scope: ' + n.scope;
+        tooltip.innerHTML = '<b>' + n.label + '</b>' + (desc ? '<span>' + desc + '</span>' : '') + extra;
+      } else {
+        tooltip.style.display = 'none';
+      }
+    }
+  });
+
+  function endPointer(e) {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinch = null;
+    canvas.classList.remove('dragging');
+    if (moved < 5 && !pinch) {
+      const n = pick(e.clientX, e.clientY);
+      if (n && n.children.length && n !== hub) {
+        n.collapsed = !n.collapsed;
+        recomputeHidden(hub, false);
+        alpha = Math.max(alpha, 0.4);
+        draw();
+      }
+    }
+    dragNode = null; panning = false;
+  }
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+
+  canvas.addEventListener('dblclick', e => {
+    if (pick(e.clientX, e.clientY)) return;
+    view.x = 0; view.y = 0; view.k = 1;
+    draw();
+  });
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoomAt(e.clientX, e.clientY, view.k * Math.exp(-e.deltaY * 0.0012));
+    draw();
+  }, { passive: false });
+
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+  new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  resize();
+  loop();
+})();
+</script>

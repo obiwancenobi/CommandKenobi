@@ -20,7 +20,8 @@ CommandKenobi/
 │       ├── add-documentation.md
 │       ├── plan-interview.md
 │       ├── generate-social-content.md
-│       └── generate-onboarding.md
+│       ├── generate-onboarding.md
+│       └── harness-map.md
 ├── .claude/
 │   └── commands/              # Claude Code format (you are here)
 │       ├── commit-all.md
@@ -31,7 +32,8 @@ CommandKenobi/
 │       ├── add-documentation.md
 │       ├── plan-interview.md
 │       ├── generate-social-content.md
-│       └── generate-onboarding.md
+│       ├── generate-onboarding.md
+│       └── harness-map.md
 ├── .kilocode/
 │   └── workflows/             # Kilo Code format
 │       ├── commit-all.md
@@ -42,7 +44,10 @@ CommandKenobi/
 │       ├── add-documentation.md
 │       ├── plan-interview.md
 │       ├── generate-social-content.md
-│       └── generate-onboarding.md
+│       ├── generate-onboarding.md
+│       └── harness-map.md
+├── templates/
+│   └── harness-map.html       # Shared rendering template for /harness-map (all tools)
 ├── docs/
 │   ├── git-commit-workflow.md
 │   ├── create-pr-workflow.md
@@ -55,7 +60,7 @@ CommandKenobi/
 
 **Key Concept**: This repository is documentation-only. There is no executable code — only command specifications that AI assistants read and execute.
 
-**Multi-Tool Compatibility**: All 9 commands are available in three formats for OpenCode, Claude Code, and Kilo Code. Core logic is shared; only interaction patterns (user prompts, bash syntax, subagent invocation) differ per tool.
+**Multi-Tool Compatibility**: All 10 commands are available in three formats for OpenCode, Claude Code, and Kilo Code. Core logic is shared; only interaction patterns (user prompts, bash syntax, subagent invocation) differ per tool.
 
 ## Command Files Structure
 
