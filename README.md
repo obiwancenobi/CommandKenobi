@@ -81,7 +81,7 @@ This repository exists to:
 
 ### Available Commands
 
-All 10 commands are available across OpenCode, Claude Code, and Kilo Code.
+All 11 commands are available across OpenCode, Claude Code, and Kilo Code.
 
 | Command | Description | OpenCode | Claude Code | Kilo Code |
 |---------|-------------|:--------:|:-----------:|:---------:|
@@ -95,6 +95,7 @@ All 10 commands are available across OpenCode, Claude Code, and Kilo Code.
 | `/generate-social-content` | Generate social media content across platforms with parallel subagents | `.opencode/` | `.claude/` | `.kilocode/` |
 | `/generate-onboarding` | Generate a guided code tour as a standalone HTML file for project onboarding | `.opencode/` | `.claude/` | `.kilocode/` |
 | `/harness-map` | Generate an interactive force-graph map of the current agent harness | `.opencode/` | `.claude/` | `.kilocode/` |
+| `/ship` | Create a PR, babysit checks, fix review comments, and merge when green | `.opencode/` | `.claude/` | `.kilocode/` |
 
 ### Command File Structure
 
@@ -395,7 +396,8 @@ CommandKenobi/
 │       ├── plan-interview.md
 │       ├── generate-social-content.md
 │       ├── generate-onboarding.md
-│       └── harness-map.md
+│       ├── harness-map.md
+│       └── ship.md
 ├── .claude/
 │   └── commands/              # Claude Code format (allowed-tools + inline prompts)
 │       ├── commit-all.md
@@ -407,7 +409,8 @@ CommandKenobi/
 │       ├── plan-interview.md
 │       ├── generate-social-content.md
 │       ├── generate-onboarding.md
-│       └── harness-map.md
+│       ├── harness-map.md
+│       └── ship.md
 ├── .kilocode/
 │   └── workflows/             # Kilo Code format (plain markdown + ask_user)
 │       ├── commit-all.md
@@ -419,7 +422,8 @@ CommandKenobi/
 │       ├── plan-interview.md
 │       ├── generate-social-content.md
 │       ├── generate-onboarding.md
-│       └── harness-map.md
+│       ├── harness-map.md
+│       └── ship.md
 ├── templates/
 │   └── harness-map.html       # Shared rendering template for /harness-map (all tools)
 ├── docs/
@@ -528,6 +532,16 @@ This repository has no runtime dependencies. It is a documentation-only reposito
 5. Saves the result and opens it (Claude Code additionally publishes it as an Artifact)
 
 **Output:** `docs/harness-map.html` — an interactive force-directed graph with search, zoom, collapse/expand, and dark/light themes.
+
+### Shipping Work with `/ship`
+
+1. Execute `/ship` (optionally with notes: `/ship base develop` or a PR title)
+2. AI assistant branches off protected branches, commits pending work with a Conventional Commits message, and pushes
+3. Opens a PR via `gh` (or reuses an existing one) and reports the URL immediately
+4. Babysits the PR: polls checks and review comments, fixes failures and actionable feedback, pushes updates
+5. Merges automatically (`--squash --delete-branch`) once checks are green and no blocking reviews remain
+
+**Autonomous by design** — it only stops for genuine blockers: unresolvable merge conflicts, ambiguous test failures, or review feedback needing a human decision.
 
 ## Best Practices
 
