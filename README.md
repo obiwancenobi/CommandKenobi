@@ -430,7 +430,9 @@ CommandKenobi/
 │   ├── git-commit-workflow.md
 │   ├── create-pr-workflow.md
 │   ├── generate-social-content-diagram.md
-│   └── generate-onboarding-workflow.md
+│   ├── generate-onboarding-workflow.md
+│   ├── harness-map-workflow.md
+│   └── ship-workflow.md
 ├── AGENTS.md
 ├── CLAUDE.md
 └── README.md
@@ -444,6 +446,8 @@ CommandKenobi/
 | [Create PR Workflow](docs/create-pr-workflow.md) | Flow for `/create-pr` including gh CLI fallback |
 | [Generate Social Content](docs/generate-social-content-diagram.md) | Parallel subagent architecture for `/generate-social-content` |
 | [Generate Onboarding](docs/generate-onboarding-workflow.md) | Code tour generation pipeline for `/generate-onboarding` |
+| [Harness Map](docs/harness-map-workflow.md) | Template + live-data injection flow for `/harness-map` |
+| [Ship Workflow](docs/ship-workflow.md) | PR-to-merge flow for `/ship` including review comment triage |
 
 ### Design Decisions
 
@@ -533,15 +537,21 @@ This repository has no runtime dependencies. It is a documentation-only reposito
 
 **Output:** `docs/harness-map.html` — an interactive force-directed graph with search, zoom, collapse/expand, and dark/light themes.
 
+[See workflow diagram](docs/harness-map-workflow.md) for the full flow and template architecture.
+
 ### Shipping Work with `/ship`
 
 1. Execute `/ship` (optionally with notes: `/ship base develop` or a PR title)
 2. AI assistant branches off protected branches, commits pending work with a Conventional Commits message, and pushes
 3. Opens a PR via `gh` (or reuses an existing one) and reports the URL immediately
-4. Babysits the PR: polls checks and review comments, fixes failures and actionable feedback, pushes updates
-5. Merges automatically (`--squash --delete-branch`) once checks are green and no blocking reviews remain
+4. Babysits the PR: polls checks and review comments, fixes failures, pushes updates
+5. Triages every review comment: crucial issues (bugs, security, data loss) get fixed; non-crucial nits get a brief reply explaining the skip — AI reviewers (CodeRabbit, Copilot, Gemini) are treated as suggestions, not orders
+6. Replies to and resolves every review thread; dismisses bot reviews stuck in "Changes requested" (never a human's)
+7. Merges automatically (`--squash --delete-branch`) once checks are green and all threads are resolved
 
 **Autonomous by design** — it only stops for genuine blockers: unresolvable merge conflicts, ambiguous test failures, or review feedback needing a human decision.
+
+[See workflow diagram](docs/ship-workflow.md) for the full flow and review comment triage.
 
 ## Best Practices
 

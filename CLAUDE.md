@@ -55,7 +55,9 @@ CommandKenobi/
 │   ├── git-commit-workflow.md
 │   ├── create-pr-workflow.md
 │   ├── generate-social-content-diagram.md
-│   └── generate-onboarding-workflow.md
+│   ├── generate-onboarding-workflow.md
+│   ├── harness-map-workflow.md
+│   └── ship-workflow.md
 ├── AGENTS.md                  # Detailed agent guidelines (primary reference)
 ├── README.md                  # User-facing documentation
 └── CLAUDE.md                  # This file
@@ -209,6 +211,8 @@ Workflow diagrams:
 - [docs/create-pr-workflow.md](docs/create-pr-workflow.md) — Flow for `/create-pr` with gh fallback
 - [docs/generate-social-content-diagram.md](docs/generate-social-content-diagram.md) — Parallel subagent architecture
 - [docs/generate-onboarding-workflow.md](docs/generate-onboarding-workflow.md) — Code tour generation pipeline
+- [docs/harness-map-workflow.md](docs/harness-map-workflow.md) — Template + live-data injection flow for `/harness-map`
+- [docs/ship-workflow.md](docs/ship-workflow.md) — PR-to-merge flow for `/ship` with review comment triage
 
 Other important files:
 - `.opencode/commands/*.md` — OpenCode command specifications

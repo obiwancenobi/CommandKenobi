@@ -37,9 +37,15 @@ Create a PR for the current work, babysit its checks, fix review comments, and m
   - `gh api repos/OWNER/REPO/pulls/PR_NUMBER/comments` for inline threads
 
 ### 4. Fix Feedback
-- For each failing check or actionable review comment: investigate, fix in code, commit, and push to the same branch
-- Resolve/reply to threads where appropriate, then re-poll
-- Loop until checks pass AND there are no unresolved blocking review comments
+- For each failing check: investigate, fix in code, commit, and push to the same branch, then re-poll
+- **Triage every review comment** — crucial (bug, security, data loss, broken behavior) vs non-crucial (style nits, subjective preference, speculative refactors):
+  - Crucial → fix it, commit, push, then reply to the thread with what changed
+  - Non-crucial → reply briefly explaining why you're skipping it; do not blindly apply it
+- AI reviewers (CodeRabbit, Copilot, Gemini, etc.) get the same triage — their comments are suggestions, not orders. If one keeps re-reviewing every push, address only what's crucial and decline the rest; do not chase an endless loop
+- Reply to inline threads with `execute_command` running `gh api repos/OWNER/REPO/pulls/PR_NUMBER/comments/COMMENT_ID/replies -f body="..."`
+- Resolve each handled thread with `execute_command` running `gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'` — thread IDs from the PR's reviewThreads query
+- If a bot review is stuck in "Changes requested" after its comments are resolved, dismiss it with `execute_command` running `gh api -X PUT repos/OWNER/REPO/pulls/PR_NUMBER/reviews/REVIEW_ID/dismissals -f message="Addressed/declined with rationale" -f event="DISMISS"` — only dismiss bot reviews, never a human's
+- Loop until checks pass AND every review thread is replied to and resolved
 
 ### 5. Merge When Green
 - When mergeStateStatus is CLEAN (required checks passed, no blocking reviews): merge automatically with `execute_command` running `gh pr merge PR_NUMBER --squash --delete-branch` — do NOT ask the user to confirm the merge; a green PR is the go-ahead
