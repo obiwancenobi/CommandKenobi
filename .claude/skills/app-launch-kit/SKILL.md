@@ -4,12 +4,12 @@ description: >
   Produce the complete Google Play launch kit for a mobile app in one pass: store listing
   copy, screenshots and store cards rendered from a real ad-free build, feature graphic and
   icon, an animated portrait promo video (<30s), a release checklist audited against the
-  code, and launch social content for 8 platforms. Use whenever the user says "store
+  code, and launch social content for 7 platforms. Use whenever the user says "store
   listing", "Play Store assets", "screenshots for the store", "promo video", "launch kit",
   "release checklist", "what do I need to publish", "prepare for launch", or asks for any
   two of those items together, even if they only name one. Also use when a release build
   exists and the user asks "what next". Flutter/Android first; the HTML/ffmpeg pipeline is
-  framework-agnostic.
+  framework-agnostic but assumes a macOS host (Chrome, adb, sips).
 ---
 
 # App launch kit
@@ -25,7 +25,7 @@ store/
 ├── raw/en/*.png              ← cropped device captures
 ├── en/*.png                  ← phone-1..8, tablet7/10, feature-graphic, app_icon-512, endcard
 └── promo/*.mp4
-social-content/<app>-launch/  ← 8 platform files + summary.md
+social-content/<app>-launch/  ← 7 platform files + summary.md
 ```
 
 Read `references/pipeline.md` before step 3. Paths below are relative to the repo root;
@@ -38,7 +38,7 @@ Read `references/pipeline.md` before step 3. Paths below are relative to the rep
 - Brand tokens: colours, font, radius, shadow style. Source: the theme module. Map them onto
   the `:root` block in `store/src/shared.css`.
 - Icon PNG (≥512). Voice profile (`~/.claude/voice.md` if present).
-- A previous project's `store/` as a worked example if one is on disk (`pocket_tools`, `rotmeter`).
+- A previous project's `store/` as a worked example if one is on disk.
 - Existing build flavours: is there an ad-free screenshot flavour or flag? Is there demo data?
 
 ## 1. Scaffold
@@ -108,7 +108,7 @@ Record what you found under Notes. An unticked box with a reason beats a false t
 ## 8. Social content
 
 Follow `references/social-brief.md`. Prefer the installed `generate-social-content`
-command; otherwise write the eight files yourself. Align placeholder numbers, add `summary.md`.
+command; otherwise write the seven files yourself. Align placeholder numbers, add `summary.md`.
 
 ## 9. Report
 
@@ -120,7 +120,6 @@ what was skipped and why. Do not commit unless asked.
 
 - `scripts/record.mjs` headless-Chrome frame recorder (CDP, deterministic seek)
 - `scripts/build-promo.sh <promo.html> <out.mp4> [bgm|none]`
-- `scripts/crop.py <in> <out> <top> <bottom>`
 - `assets/store-src/` shared.css · frame.html · card.html · feature.html · endcard.html ·
-  promo.html · render.sh · capture.sh · bgm.m4a
+  promo.html · render.sh · capture.sh · crop.py · bgm.m4a
 - `references/` pipeline.md · listing-template.md · release-checklist-template.md · social-brief.md

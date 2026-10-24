@@ -47,13 +47,15 @@ flowchart TD
     G6 --> H6["reddit.md"]
     G7 --> H7["youtube.md"]
 
-    H1 --> I["Step 7: Generate Summary"]
-    H2 --> I
-    H3 --> I
-    H4 --> I
-    H5 --> I
-    H6 --> I
-    H7 --> I
+    H1 --> HZ["Step 6.5: Humanizer Subagent\n(rewrites every platform file)"]
+    H2 --> HZ
+    H3 --> HZ
+    H4 --> HZ
+    H5 --> HZ
+    H6 --> HZ
+    H7 --> HZ
+
+    HZ --> I["Step 7: Generate Summary"]
 
     I --> I1["summary.md\n(Posting Calendar)"]
 
@@ -89,9 +91,9 @@ flowchart LR
         S3c["Write .md file"]
     end
 
-    M1 -->|"Task tool\n(parallel)"| S1
-    M1 -->|"Task tool\n(parallel)"| S2
-    M1 -->|"Task tool\n(parallel)"| S3
+    M1 -->|"subagent tool\n(parallel)"| S1
+    M1 -->|"subagent tool\n(parallel)"| S2
+    M1 -->|"subagent tool\n(parallel)"| S3
 
     S1 --> S1a --> S1b --> S1c
     S2 --> S2a --> S2b --> S2c
@@ -153,7 +155,7 @@ graph LR
 
 ## Cross-Tool Compatibility
 
-All 8 commands are available across OpenCode, Claude Code, and Kilo Code. Only interaction patterns differ — core workflow logic is shared.
+All 11 commands are available across OpenCode, Claude Code, and Kilo Code. Only interaction patterns differ — core workflow logic is shared.
 
 ```mermaid
 graph TD
@@ -166,6 +168,9 @@ graph TD
         OC6["add-documentation.md"]
         OC7["plan-interview.md"]
         OC8["generate-social-content.md"]
+        OC9["generate-onboarding.md"]
+        OC10["harness-map.md"]
+        OC11["ship.md"]
         OC_Uses["question tool, $ARGUMENTS,\nTask tool"]
     end
 
@@ -178,7 +183,10 @@ graph TD
         CC6["add-documentation.md"]
         CC7["plan-interview.md"]
         CC8["generate-social-content.md"]
-        CC_Uses["allowed-tools frontmatter,\ninline prompts, Task tool"]
+        CC9["generate-onboarding.md"]
+        CC10["harness-map.md"]
+        CC11["ship.md"]
+        CC_Uses["allowed-tools frontmatter,\ninline prompts, Agent tool"]
     end
 
     subgraph KiloCode["Kilo Code (.kilocode/workflows/)"]
@@ -190,6 +198,9 @@ graph TD
         KC6["add-documentation.md"]
         KC7["plan-interview.md"]
         KC8["generate-social-content.md"]
+        KC9["generate-onboarding.md"]
+        KC10["harness-map.md"]
+        KC11["ship.md"]
         KC_Uses["ask_user, execute_command,\nnew_task(), write_to_file"]
     end
 
@@ -204,7 +215,7 @@ graph TD
         CL8["Parallel subagents"]
     end
 
-    OC1 & OC2 & OC3 & OC4 & OC5 & OC6 & OC7 & OC8 --> Core
-    CC1 & CC2 & CC3 & CC4 & CC5 & CC6 & CC7 & CC8 --> Core
-    KC1 & KC2 & KC3 & KC4 & KC5 & KC6 & KC7 & KC8 --> Core
+    OC1 & OC2 & OC3 & OC4 & OC5 & OC6 & OC7 & OC8 & OC9 & OC10 & OC11 --> Core
+    CC1 & CC2 & CC3 & CC4 & CC5 & CC6 & CC7 & CC8 & CC9 & CC10 & CC11 --> Core
+    KC1 & KC2 & KC3 & KC4 & KC5 & KC6 & KC7 & KC8 & KC9 & KC10 & KC11 --> Core
 ```

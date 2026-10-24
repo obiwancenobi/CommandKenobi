@@ -4,7 +4,7 @@ Guidelines for agentic coding agents working in the CommandKenobi repository.
 
 ## Repository Overview
 
-This repository contains command specifications for git operations and planning workflows, available in three formats for OpenCode, Claude Code, and Kilo Code. Core workflow logic is shared across all formats — only user interaction patterns differ per tool.
+This repository contains slash command specifications for git operations, planning, documentation, and content generation, available in three formats for OpenCode, Claude Code, and Kilo Code, plus skills under `.claude/skills/` (folder + `SKILL.md`). Core workflow logic is shared across all formats — only user interaction patterns differ per tool.
 
 ## Cursor/Copilot Rules
 
@@ -125,7 +125,7 @@ git status && git diff --cached && git log --oneline -5
 
 ### Parallel Subagents
 For content generation commands, launch one subagent per target simultaneously:
-- Use the `Task` tool (OpenCode/Claude Code) or `new_task()` (Kilo Code)
+- Use the `Task` tool (OpenCode), the `Agent` tool (Claude Code), or `new_task()` (Kilo Code)
 - All subagent calls must be in a single message for parallel execution
 - Each subagent receives: context, platform, goal, timezone, output path
 - Each subagent must include `subagent_type: general`, `description`, and `prompt` parameters
@@ -161,6 +161,6 @@ Follow: pre-flight → analyze → generate → present → execute
 
 For commands that span OpenCode, Claude Code, and Kilo Code:
 - **OpenCode**: `.opencode/commands/` — uses `question` tool, `$ARGUMENTS`, `Task` tool for subagents
-- **Claude Code**: `.claude/commands/` — uses `allowed-tools` frontmatter, inline prompts, `Task` tool
+- **Claude Code**: `.claude/commands/` — uses `allowed-tools` frontmatter, inline prompts, `Agent` tool
 - **Kilo Code**: `.kilocode/workflows/` — plain markdown, chat prompts, `new_task()` for subtasks
 - Core prompt logic is shared; only interaction patterns differ per tool

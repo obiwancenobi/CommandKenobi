@@ -35,4 +35,4 @@ Play screenshots must not show ads, and a fresh install shows empty screens. Sol
 
 ## Requirements
 
-Chrome at `/Applications/Google Chrome.app`, Node 22+ (global WebSocket), ffmpeg, python3 + Pillow, `sips` (macOS), adb in `~/Library/Android/sdk/platform-tools`.
+Chrome at `/Applications/Google Chrome.app` (override with `CHROME=<binary>`), Node 22+ (global WebSocket), ffmpeg, python3 + Pillow, `sips` (macOS), adb in `~/Library/Android/sdk/platform-tools`.

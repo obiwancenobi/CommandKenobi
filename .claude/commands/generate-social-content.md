@@ -1,6 +1,6 @@
 ---
 description: Generate social media content across multiple platforms with parallel subagents
-allowed-tools: Bash(mkdir:*), Bash(cat *), Write, Read, Grep, Glob, Task, question
+allowed-tools: Bash(mkdir:*), Bash(cat:*), Bash(ls:*), Write, Read, Grep, Glob, Agent
 ---
 
 You are executing the `/generate-social-content` command. Generate social media content from user-provided context and distribute across selected platforms using parallel subagents. Follow this workflow:
@@ -10,14 +10,15 @@ You are executing the `/generate-social-content` command. Generate social media 
 Check if `$ARGUMENTS` is provided and non-empty:
 
 - If provided: Use `$ARGUMENTS` as the topic/context
-- If empty: Use question tool:
-  - question: "Describe the feature, product, or topic you want to create social media content for."
-  - header: "Content Topic"
-  - options:
-    - label: "Type Description"
-      description: "I will type the context manually"
-    - label: "Scan Project README"
-      description: "Use the project README.md as the content source"
+- If empty: Present options in chat:
+  ```
+  Describe the feature, product, or topic you want to create social media content for.
+
+  1. Type Description — I will type the context manually
+  2. Scan Project README — Use the project README.md as the content source
+
+  Reply with the number.
+  ```
 
 If user chooses "Scan Project README":
 - Run: cat README.md 2>/dev/null || echo "NO_READMARY"
@@ -28,69 +29,57 @@ Save the topic context as `{TOPIC}` for use in later steps.
 
 ## Step 2: Ask Timezone
 
-Use question tool:
-- question: "What is your timezone? This is used to personalize best-time-to-post recommendations."
-- header: "Timezone"
-- options:
-  - label: "America/New_York (EST/EDT)"
-    description: "US East Coast"
-  - label: "America/Los_Angeles (PST/PDT)"
-    description: "US West Coast"
-  - label: "Europe/London (GMT/BST)"
-    description: "UK / Ireland"
-  - label: "Asia/Tokyo (JST)"
-    description: "Japan / Korea"
-  - label: "Asia/Jakarta (WIB)"
-    description: "Indonesia"
-  - label: "Australia/Sydney (AEST)"
-    description: "Australia East Coast"
-  - label: "Europe/Berlin (CET/CEST)"
-    description: "Central Europe"
+Present options in chat:
+```
+What is your timezone? This is used to personalize best-time-to-post recommendations.
+
+1. America/New_York (EST/EDT) — US East Coast
+2. America/Los_Angeles (PST/PDT) — US West Coast
+3. Europe/London (GMT/BST) — UK / Ireland
+4. Asia/Tokyo (JST) — Japan / Korea
+5. Asia/Jakarta (WIB) — Indonesia
+6. Australia/Sydney (AEST) — Australia East Coast
+7. Europe/Berlin (CET/CEST) — Central Europe
+
+Reply with the number, or type your own IANA timezone.
+```
 
 Save the timezone as `{TIMEZONE}`.
 
 ## Step 3: Platform Selection
 
-Use question tool:
-- question: "Which social media platforms do you want to create content for? Select one or more."
-- header: "Platforms"
-- multiple: true
-- options:
-  - label: "LinkedIn"
-    description: "Professional post, article teaser, or carousel idea"
-  - label: "Twitter/X"
-    description: "Thread or single tweet"
-  - label: "Instagram"
-    description: "Carousel, reel script, or story"
-  - label: "Facebook"
-    description: "Post or event announcement"
-  - label: "TikTok"
-    description: "Short video script (15-60s)"
-  - label: "Reddit"
-    description: "Value-driven post or AMA outline"
-  - label: "YouTube"
-    description: "Short video script or community post"
+Present options in chat:
+```
+Which social media platforms do you want to create content for? Select one or more.
+
+1. LinkedIn — Professional post, article teaser, or carousel idea
+2. Twitter/X — Thread or single tweet
+3. Instagram — Carousel, reel script, or story
+4. Facebook — Post or event announcement
+5. TikTok — Short video script (15-60s)
+6. Reddit — Value-driven post or AMA outline
+7. YouTube — Short video script or community post
+
+Reply with the numbers, comma-separated (e.g. 1,2,6), or "all".
+```
 
 Save selected platforms as `{PLATFORMS}`.
 
 ## Step 4: Goal Selection
 
-Use question tool:
-- question: "What is the primary goal for this social media content?"
-- header: "Content Goal"
-- options:
-  - label: "Brand Awareness"
-    description: "Increase visibility and reach new audiences"
-  - label: "Engagement"
-    description: "Drive likes, comments, shares, and conversations"
-  - label: "Lead Generation"
-    description: "Capture leads and drive signups or demos"
-  - label: "Product Launch"
-    description: "Announce a new feature, product, or update"
-  - label: "Education"
-    description: "Teach the audience something valuable"
-  - label: "Community Building"
-    description: "Foster discussion and build a loyal following"
+Present options in chat:
+```
+What is the primary goal for this social media content?
+
+1. Brand Awareness — Increase visibility and reach new audiences
+2. Engagement — Drive likes, comments, shares, and conversations
+3. Lead Generation — Capture leads and drive signups or demos
+4. Product Launch — Announce a new feature, product, or update
+5. Education — Teach the audience something valuable
+6. Community Building — Foster discussion and build a loyal following
+
+Reply with the number.
+```
 
 Save the goal as `{GOAL}`.
 
@@ -111,9 +100,9 @@ Save the directory path as `{OUTPUT_DIR}`.
 
 ## Step 6: Launch Parallel Subagents
 
-For each selected platform, launch a subagent using the Task tool. All subagent Task calls MUST be in a single message to run in parallel.
+For each selected platform, launch a subagent using the Agent tool. All subagent Agent calls MUST be in a single message to run in parallel.
 
-For each platform in `{PLATFORMS}`, call the Task tool with:
+For each platform in `{PLATFORMS}`, call the Agent tool with:
 
 - subagent_type: general
 - description: "Generate {PLATFORM} content"
@@ -448,7 +437,7 @@ Describe the ideal thumbnail: text overlay, facial expression, color scheme, com
 
 ## Step 6.5: Humanize Content
 
-After ALL platform subagents complete, launch a single humanizer subagent using the Task tool:
+After ALL platform subagents complete, launch a single humanizer subagent using the Agent tool:
 
 - subagent_type: general
 - description: "Humanize social content"

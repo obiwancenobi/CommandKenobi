@@ -1,5 +1,6 @@
 ---
-description: Generate an interactive force-graph map of the current agent harness (core tools, MCP servers, agents, all skills)
+description: Generate an interactive force-graph map of the current agent harness (core tools, deferred tools, MCP servers, agents, all skills)
+agent: build
 ---
 
 Generate an interactive, browsable map of everything available in the current session's harness.

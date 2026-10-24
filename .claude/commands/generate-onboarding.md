@@ -1,6 +1,6 @@
 ---
 description: Generate a guided code tour as a standalone HTML file for project onboarding
-allowed-tools: Bash(find:*), Bash(ls:*), Bash(mkdir:*), Bash(head:*), Bash(grep:*), Bash(cat:*), Read, Glob, Grep, Task, Write
+allowed-tools: Bash(find:*), Bash(ls:*), Bash(mkdir:*), Bash(head:*), Bash(grep:*), Bash(cat:*), Read, Glob, Grep, Agent, Write
 ---
 
 You are executing the `/generate-onboarding` command. Analyze the current project and generate a self-contained HTML code tour for developer onboarding. Follow this workflow:
@@ -55,11 +55,11 @@ Save all discovery results as `{DISCOVERY}` for use by subagents.
 
 ## Step 3: Launch Parallel Research Agents
 
-Launch 5 subagents using the Task tool. All subagent Task calls MUST be in a single message to run in parallel.
+Launch 5 subagents using the Agent tool. All subagent Agent calls MUST be in a single message to run in parallel.
 
 ### Subagent 1: Execution Flow
 
-Call the Task tool with:
+Call the Agent tool with:
 - subagent_type: general
 - description: "Trace execution flow"
 - prompt:
@@ -109,7 +109,7 @@ Output your findings as a structured list that can be used to build an HTML tour
 
 ### Subagent 2: Data Flow
 
-Call the Task tool with:
+Call the Agent tool with:
 - subagent_type: general
 - description: "Map data flow"
 - prompt:
@@ -157,7 +157,7 @@ If focus is not "full", prioritize the focus area.
 
 ### Subagent 3: Configuration & Setup
 
-Call the Task tool with:
+Call the Agent tool with:
 - subagent_type: general
 - description: "Analyze configuration and setup"
 - prompt:
@@ -204,7 +204,7 @@ Include file:line references where relevant.
 
 ### Subagent 4: Patterns & Conventions
 
-Call the Task tool with:
+Call the Agent tool with:
 - subagent_type: general
 - description: "Identify patterns and conventions"
 - prompt:
@@ -252,7 +252,7 @@ Include file:line references for key examples of each pattern.
 
 ### Subagent 5: External Dependencies
 
-Call the Task tool with:
+Call the Agent tool with:
 - subagent_type: general
 - description: "Map external dependencies"
 - prompt:

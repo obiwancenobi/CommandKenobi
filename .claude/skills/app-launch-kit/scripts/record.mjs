@@ -8,7 +8,7 @@ import { join, resolve } from 'node:path';
 const [page, outDir, fpsArg] = process.argv.slice(2);
 if (!page || !outDir) { console.error('usage: record.mjs <promo.html> <out-dir> [fps]'); process.exit(1); }
 const FPS = Number(fpsArg || 30);
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const PORT = 9222 + (process.pid % 500);
 
 await rm(outDir, { recursive: true, force: true });

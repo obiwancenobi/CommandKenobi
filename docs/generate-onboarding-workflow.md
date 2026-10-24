@@ -66,7 +66,7 @@ Slugify rules: lowercase, replace spaces/underscores with hyphens, strip non-alp
 
 ## Phase 2: Parallel Research Agents
 
-Five subagents launched simultaneously via `Task` tool:
+Five subagents launched simultaneously via the subagent tool (`Agent` in Claude Code, `Task` in OpenCode, `new_task()` in Kilo Code):
 
 | Subagent | Focus | Diagram |
 |----------|-------|---------|

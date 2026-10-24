@@ -12,7 +12,7 @@ One sentence. Outcome + two features + the trust line. This is the only copy mos
 
 ## Full description (4000 max)
 
-Structure that has worked (pocket_tools, rotmeter):
+Structure that has worked:
 
 1. One-line hook that restates the positioning. No throat-clearing.
 2. Two-sentence "what it is" paragraph with the concrete nouns people search for.
@@ -31,7 +31,7 @@ social line for the unscoped version before shipping; Play review and Reddit bot
 
 ## Bahasa Indonesia listing (`store/copy/listing-id.md`)
 
-Write it in everyday spoken Indonesian, never formal "bahasa baku": "kamu" register with nggak, udah, aja, buat, bakal; verbs like pamerin, benerin. No "lo/gue" unless asked. Keep product names, feature names and English UI labels as the app shows them. Reuse the app's own ARB terms (for a quit tracker: Kepleset, jatah kepleset, milestone, duit hemat). Same character limits as English; count them.
+Write it in everyday spoken Indonesian, never formal "bahasa baku": "kamu" register with nggak, udah, aja, buat, bakal; verbs like pamerin, benerin. No "lo/gue" unless asked. Keep product names, feature names and English UI labels as the app shows them. Reuse the app's own ARB terms. Same character limits as English; count them.
 
 ## What's new (500 max)
 

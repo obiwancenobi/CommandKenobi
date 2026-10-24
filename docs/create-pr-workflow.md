@@ -112,7 +112,7 @@ graph TD
 
     subgraph ClaudeCode["Claude Code"]
         CC[".claude/commands/create-pr.md"]
-        CC -->|"inline prompts\nBash tool\nTask tool"| Core
+        CC -->|"inline prompts\nBash tool"| Core
     end
 
     subgraph KiloCode["Kilo Code"]

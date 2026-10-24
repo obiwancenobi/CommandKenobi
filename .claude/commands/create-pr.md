@@ -1,6 +1,6 @@
 ---
 description: Commit all changes, push to remote, and create a pull request with user approval
-allowed-tools: Bash(git:*), Bash(gh:*), Bash(brew:*), Bash(which:*), Bash(open:*), Bash(xdg-open:*), Read, Grep, Glob, Task
+allowed-tools: Bash(git:*), Bash(gh:*), Bash(brew:*), Bash(which:*), Bash(open:*), Bash(xdg-open:*), Read, Grep, Glob
 ---
 
 You are executing the `/create-pr` command to commit all changes, push, and create a pull request. Follow this workflow:
