@@ -6,7 +6,7 @@ A repository of slash command specifications for git operations, planning, docum
 
 ## Overview
 
-This repository provides the same command specifications in three formats so they work across multiple AI coding assistants. Each command provides a structured workflow for common development tasks — safe git operations, feature planning, documentation, and content generation.
+Each command provides a structured workflow for a common development task: safe git operations, feature planning, documentation, onboarding tours, social content, harness maps, and autonomous PR shipping. The same specification ships in three formats so it works across multiple AI coding assistants. Core workflow logic is shared; only the user interaction patterns differ per tool.
 
 ### Quick Start
 
@@ -46,26 +46,6 @@ Then use in your AI assistant:
 /create-pr
 ```
 
-### What This Repository Does
-
-The repository provides pre-defined command specifications that:
-- Guide git operations with conventional commit standards
-- Ensure safe practices through pre-flight checks
-- Provide user approval workflows before destructive operations
-- Standardize commit message formatting across projects
-- Facilitate feature planning through structured interviews
-- Generate documentation, onboarding tours, social content, and harness maps
-- Work across OpenCode, Claude Code, and Kilo Code
-
-### Why It Exists
-
-This repository exists to:
-1. **Standardize Git Workflows**: Ensure consistent commit messages and git operations across all projects
-2. **Prevent Mistakes**: Implement pre-flight checks and user approval steps to prevent accidental commits
-3. **Enforce Best Practices**: Use conventional commit formats and protect sensitive branches
-4. **Streamline Planning**: Provide structured workflows for feature specification and planning
-5. **Multi-Tool Support**: Write once, use across OpenCode, Claude Code, and Kilo Code
-
 ### Key Concepts and Terminology
 
 | Term | Definition |
@@ -76,6 +56,7 @@ This repository exists to:
 | **Agent** | The AI assistant type that should execute the command (e.g., `build`, `general`) |
 | **Frontmatter** | YAML metadata at the top of OpenCode/Claude Code command files |
 | **Workflow** | Kilo Code's name for command specifications (plain Markdown, no frontmatter) |
+| **Skill** | A folder with a `SKILL.md` plus optional `references/`, `scripts/`, `assets/` |
 
 ## Command Specifications
 
@@ -97,13 +78,19 @@ All 11 commands are available across OpenCode, Claude Code, and Kilo Code.
 | `/harness-map` | Generate an interactive force-graph map of the current agent harness | `.opencode/` | `.claude/` | `.kilocode/` |
 | `/ship` | Create a PR, babysit checks, fix review comments, and merge when green | `.opencode/` | `.claude/` | `.kilocode/` |
 
+Every command follows the same pattern:
+
+```
+1. Pre-flight Checks → 2. Analyze → 3. Generate Output → 4. User Approval → 5. Execute
+```
+
 ## Skills
 
 Skills are folders with a `SKILL.md` file plus optional `references/`, `scripts/`, and `assets/`. Claude Code and OpenCode load them from `.claude/skills/` in a project, or from `~/.claude/skills/` globally.
 
 | Skill | Description |
 |-------|-------------|
-| `app-launch-kit` | Produce the complete Google Play launch kit in one pass: store listing copy, screenshots and store cards from a real build, feature graphic and icon, a portrait promo video, a release checklist audited against the code, and launch social content. Uses `/generate-social-content` when installed. |
+| `app-launch-kit` | Produce the complete Google Play launch kit in one pass: store listing copy, screenshots and store cards from a real build, feature graphic and icon, a portrait promo video, a release checklist audited against the code, and launch social content. Uses `/generate-social-content` when installed. macOS host assumed (Chrome, adb, sips). |
 
 Install globally:
 
@@ -112,6 +99,85 @@ cp -r /tmp/commandkenobi/.claude/skills/* ~/.claude/skills/
 ```
 
 Related third-party skills that pair well with the launch kit: [`aso`](https://github.com/coreyhaines31/marketingskills/tree/main/skills/aso) and [`launch`](https://github.com/coreyhaines31/marketingskills/tree/main/skills/launch) from `coreyhaines31/marketingskills`. Install them with `npx skills add coreyhaines31/marketingskills`.
+
+## Command Guides
+
+### `/create-pr`
+
+1. Runs pre-flight checks and stages all changes
+2. Review and accept the generated commit message
+3. Changes are committed and pushed
+4. AI generates PR title and body from changes
+5. If `gh` is available, creates PR via CLI; otherwise opens browser for manual creation
+
+[See workflow diagram](docs/create-pr-workflow.md) for the gh CLI fallback.
+
+### `/plan-interview <feature-description>`
+
+1. AI assistant asks clarifying questions
+2. Review and confirm final spec outline
+3. Git branch is created (if in git repo)
+4. Spec is written to `plan.md`
+
+### `/generate-social-content <topic>`
+
+1. Execute with a topic (or without args to be prompted)
+2. Select your timezone for best-time-to-post recommendations
+3. Multi-select target platforms (LinkedIn, Twitter/X, Instagram, Facebook, TikTok, Reddit, YouTube)
+4. Select content goal (Awareness, Engagement, Leads, Launch, Education, Community)
+5. AI assistant launches parallel subagents — one per platform
+6. A humanizer subagent rewrites every file to remove AI-sounding patterns
+7. A `summary.md` with posting calendar is generated
+
+**Output:** `social-content/<topic-slug>/` containing per-platform content files and a posting calendar.
+
+[See workflow diagram](docs/generate-social-content-diagram.md) for the full flow and subagent architecture.
+
+### `/generate-onboarding [focus area]`
+
+1. AI assistant scans project structure and identifies languages, frameworks, entry points
+2. Launches 5 parallel research subagents (execution flow, data flow, config, patterns, dependencies)
+3. Each subagent traces its area and returns findings with file:line references
+4. Tour builder generates a self-contained HTML file with Mermaid diagrams
+
+**Output:** `docs/onboarding.html` (or `docs/onboarding-<focus>.html` if a focus area is provided) — open in any browser for a guided code tour. This repo's own tour is checked in at [docs/onboarding.html](docs/onboarding.html) as a sample.
+
+[See workflow diagram](docs/generate-onboarding-workflow.md) for the full pipeline.
+
+### `/harness-map`
+
+1. AI assistant reads the rendering template at `templates/harness-map.html`
+2. Enumerates the live session harness: core tools, deferred tools, MCP servers, agent types, and all skills grouped by source
+3. Injects the fresh data into the template (rendering code is never rewritten)
+4. Saves the result and opens it (Claude Code additionally publishes it as an Artifact)
+
+**Output:** `docs/harness-map.html` — an interactive force-directed graph with search, zoom, collapse/expand, and dark/light themes.
+
+[See workflow diagram](docs/harness-map-workflow.md) for the full flow and template architecture.
+
+### `/ship [notes]`
+
+1. Execute `/ship` (optionally with notes: `/ship base develop` or a PR title)
+2. AI assistant branches off protected branches, commits pending work with a Conventional Commits message, and pushes
+3. Opens a PR via `gh` (or reuses an existing one) and reports the URL immediately
+4. Babysits the PR: polls checks and review comments, fixes failures, pushes updates
+5. Triages every review comment: crucial issues (bugs, security, data loss) get fixed; non-crucial nits get a brief reply explaining the skip — AI reviewers (CodeRabbit, Copilot, Gemini) are treated as suggestions, not orders
+6. Replies to and resolves every review thread; dismisses bot reviews stuck in "Changes requested" (never a human's)
+7. Merges automatically (`--squash --delete-branch`) once checks are green and all threads are resolved
+
+**Autonomous by design** — it only stops for genuine blockers: unresolvable merge conflicts, ambiguous test failures, or review feedback needing a human decision.
+
+[See workflow diagram](docs/ship-workflow.md) for the full flow and review comment triage.
+
+## Multi-Tool Compatibility
+
+All commands are available in three formats. Core workflow logic is shared — only user interaction patterns differ per tool.
+
+| Platform | Directory | Frontmatter | User Prompts | Bash | Subagents |
+|----------|-----------|-------------|-------------|------|-----------|
+| **OpenCode** | `.opencode/commands/` | `description` + `agent` | `question` tool | `Run: cmd` | `Task` tool |
+| **Claude Code** | `.claude/commands/` | `description` + `allowed-tools` | Inline chat prompts | `Bash(cmd)` | `Agent` tool |
+| **Kilo Code** | `.kilocode/workflows/` | None (plain markdown) | `ask_user` | `execute_command` | `new_task()` |
 
 ### Command File Structure
 
@@ -151,6 +217,8 @@ allowed-tools: Bash(git:*), Read, Grep, Glob
 [Common errors and responses]
 ```
 
+`allowed-tools` is a comma-separated list (e.g., `Bash(git:*), Read, Agent`) and scopes the command's permissions.
+
 #### Kilo Code Format (`.kilocode/workflows/`)
 
 ```markdown
@@ -168,25 +236,41 @@ Brief description of the command.
 [Common errors and responses]
 ```
 
-### Frontmatter Fields
+### Same Command, Three Formats
 
-#### OpenCode
+Here is how a user approval step looks in each tool:
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `description` | Yes | Brief description shown in command help |
-| `agent` | Yes | AI assistant type that should execute (e.g., `build`, `general`) |
+**OpenCode** — uses structured `question` tool:
+```yaml
+Use question tool to ask user:
+- question: "Commit message ready. What would you like to do?"
+- header: "Commit Action"
+- options:
+  - label: "Accept"
+    description: "Stage all and commit with this message"
+  - label: "Cancel"
+    description: "Abort the commit"
+```
 
-#### Claude Code
+**Claude Code** — uses inline chat prompts:
+```
+Ask in chat:
+1. Accept — Stage all and commit with this message
+2. Suggest Again — Generate an alternative commit message
+3. Cancel — Abort the commit
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `description` | Yes | Brief description shown in command help |
-| `allowed-tools` | Yes | Space-separated list of allowed tools (e.g., `Bash(git:*), Read, Task`) |
+Reply with the number.
+```
 
-#### Kilo Code
-
-No frontmatter required. Commands are plain Markdown files with a title heading.
+**Kilo Code** — uses `ask_user`:
+```
+Use ask_user:
+> Commit message ready. What would you like to do?
+>
+> 1. Accept — Stage all and commit with this message
+> 2. Suggest Again — Generate an alternative commit message
+> 3. Cancel — Abort the commit
+```
 
 ## Conventional Commits
 
@@ -227,157 +311,11 @@ refactor(utils): simplify date formatting logic
 - No period at the end
 - Focus on what the change does
 
-## API Documentation
+### Protected Branches
 
-### Multi-Tool Compatibility
-
-All commands are available in three formats. Core workflow logic is shared — only user interaction patterns differ per tool.
-
-| Platform | Directory | Frontmatter | User Prompts | Bash | Subagents |
-|----------|-----------|-------------|-------------|------|-----------|
-| **OpenCode** | `.opencode/commands/` | `description` + `agent` | `question` tool | `Run: cmd` | `Task` tool |
-| **Claude Code** | `.claude/commands/` | `description` + `allowed-tools` | Inline chat prompts | `Bash(cmd)` | `Task` tool |
-| **Kilo Code** | `.kilocode/workflows/` | None (plain markdown) | `ask_user` | `execute_command` | `new_task()` |
-
-#### Same Command, Three Formats
-
-For example, here's how a user approval step looks in each tool:
-
-**OpenCode** — uses structured `question` tool:
-```yaml
-Use question tool to ask user:
-- question: "Commit message ready. What would you like to do?"
-- header: "Commit Action"
-- options:
-  - label: "Accept"
-    description: "Stage all and commit with this message"
-  - label: "Cancel"
-    description: "Abort the commit"
-```
-
-**Claude Code** — uses inline chat prompts:
-```
-Ask in chat:
-1. Accept — Stage all and commit with this message
-2. Suggest Again — Generate an alternative commit message
-3. Cancel — Abort the commit
-
-Reply with the number.
-```
-
-**Kilo Code** — uses `ask_user`:
-```
-Use ask_user:
-> Commit message ready. What would you like to do?
->
-> 1. Accept — Stage all and commit with this message
-> 2. Suggest Again — Generate an alternative commit message
-> 3. Cancel — Abort the commit
-```
-
-### Setup Instructions
-
-See [Quick Start](#quick-start) for installation (per-project or global). Tool-specific notes:
-
-- **OpenCode**: commands are auto-discovered from `.opencode/commands/*.md` (or `~/.config/opencode/command/` globally)
-- **Claude Code**: commands are auto-discovered from `.claude/commands/*.md` (or `~/.claude/commands/` globally); the `allowed-tools` frontmatter scopes permissions
-- **Kilo Code**: workflows are auto-discovered from `.kilocode/workflows/*.md` (or `~/.kilocode/workflows/` globally)
-
-### Usage Instructions
-
-#### Invoking Commands
-
-Once the repository is set up, you can use the slash commands in your conversations:
-
-1. **Start a conversation** with your AI assistant
-2. **Type a command** like `/commit-all` or `/push-staged`
-3. **The assistant will**:
-   - Read the corresponding command file from the tool-specific directory
-   - Execute pre-flight checks
-   - Present options for your approval
-   - Perform the requested operation
-
-#### Command Flow
-
-Each command follows this pattern:
-
-```
-1. Pre-flight Checks → 2. Analyze Changes → 3. Generate Output → 4. User Approval → 5. Execute
-```
-
-#### Example Usage
-
-```
-You: /commit-all
-
-Assistant: Running pre-flight checks...
-✓ Git user configured: your-name
-✓ Current branch: feature/my-feature
-✓ No protected branch warning
-
-Analyzing changes...
-Found 3 modified files:
-- src/app.ts
-- src/utils.ts
-- README.md
-
-Generated commit message:
-feat(app): add user authentication module
-
-Commit message ready. What would you like to do?
-1. Accept — Stage all and commit with this message
-2. Suggest Again — Generate an alternative commit message
-3. Cancel — Abort the commit
-
-You: 1
-
-Assistant: ✓ Commit created: feat(app): add user authentication module
-```
-
-### Tool Execution Syntax
-
-Each tool has its own syntax for executing commands and prompting users:
-
-#### OpenCode
-
-| Syntax | Purpose |
-|--------|---------|
-| `` `command` `` | Execute a bash command |
-| `question` | Prompt the user for input via structured question tool |
-
-#### Claude Code
-
-| Syntax | Purpose |
-|--------|---------|
-| `Bash(command)` | Execute a bash command |
-| Inline chat prompt | Ask user with numbered options in chat |
-
-#### Kilo Code
-
-| Syntax | Purpose |
-|--------|---------|
-| `execute_command` with backtick-wrapped command | Execute a bash command |
-| `ask_user` | Prompt the user with options |
-| `new_task()` | Launch a parallel subtask |
-| `write_to_file` | Write content to a file |
-
-### Question Tool Parameters (OpenCode)
-
-When user interaction is needed in OpenCode, use the question tool with:
-
-```yaml
-question: "Clear question about what to do next"
-header: "Short context header"
-options:
-  - label: "Action 1"
-    description: "What this action does"
-  - label: "Cancel"
-    description: "Abort the operation"
-```
+`main`, `master`, `develop`, and `release/*` trigger a warning with three options: Commit Anyway, Create Branch (`feat/<short-description>`, lowercase, hyphens, 3-5 words), or Cancel.
 
 ### Git Commands Reference
-
-The following git commands are used across commands:
 
 | Command | Purpose |
 |---------|---------|
@@ -393,66 +331,26 @@ The following git commands are used across commands:
 | `git commit -m "<msg>"` | Create a commit |
 | `git push origin <branch>` | Push to remote |
 
-## Implementation Details
-
-### Architecture Overview
-
-The repository provides commands in three formats for multi-tool compatibility:
+## Repository Layout
 
 ```
 CommandKenobi/
-├── .opencode/
-│   └── commands/              # OpenCode format (YAML frontmatter + question tool)
-│       ├── commit-all.md
-│       ├── commit-staged.md
-│       ├── create-pr.md
-│       ├── push-all.md
-│       ├── push-staged.md
-│       ├── add-documentation.md
-│       ├── plan-interview.md
-│       ├── generate-social-content.md
-│       ├── generate-onboarding.md
-│       ├── harness-map.md
-│       └── ship.md
+├── .opencode/commands/        # OpenCode format (YAML frontmatter + question tool)
 ├── .claude/
-│   └── commands/              # Claude Code format (allowed-tools + inline prompts)
-│       ├── commit-all.md
-│       ├── commit-staged.md
-│       ├── create-pr.md
-│       ├── push-all.md
-│       ├── push-staged.md
-│       ├── add-documentation.md
-│       ├── plan-interview.md
-│       ├── generate-social-content.md
-│       ├── generate-onboarding.md
-│       ├── harness-map.md
-│       └── ship.md
-├── .kilocode/
-│   └── workflows/             # Kilo Code format (plain markdown + ask_user)
-│       ├── commit-all.md
-│       ├── commit-staged.md
-│       ├── create-pr.md
-│       ├── push-all.md
-│       ├── push-staged.md
-│       ├── add-documentation.md
-│       ├── plan-interview.md
-│       ├── generate-social-content.md
-│       ├── generate-onboarding.md
-│       ├── harness-map.md
-│       └── ship.md
-├── templates/
-│   └── harness-map.html       # Shared rendering template for /harness-map (all tools)
+│   ├── commands/              # Claude Code format (allowed-tools + inline prompts)
+│   └── skills/app-launch-kit/ # Google Play launch kit skill
+├── .kilocode/workflows/       # Kilo Code format (plain markdown + ask_user)
+├── templates/harness-map.html # Shared rendering template for /harness-map
 ├── docs/
-│   ├── git-commit-workflow.md
-│   ├── create-pr-workflow.md
-│   ├── generate-social-content-diagram.md
-│   ├── generate-onboarding-workflow.md
-│   ├── harness-map-workflow.md
-│   └── ship-workflow.md
-├── AGENTS.md
-├── CLAUDE.md
+│   ├── *-workflow.md          # Mermaid workflow diagrams (see below)
+│   ├── onboarding.html        # Sample output of /generate-onboarding for this repo
+│   └── superpowers/           # Plans and design specs
+├── AGENTS.md                  # Guidelines for agents editing this repo
+├── CLAUDE.md                  # Claude Code project instructions
 └── README.md
 ```
+
+Each of the three command directories holds the same 11 files, named `<action>-<target>.md`.
 
 ### Workflow Diagrams
 
@@ -468,162 +366,14 @@ CommandKenobi/
 ### Design Decisions
 
 1. **Markdown with Frontmatter**: Chosen for readability and ease of parsing
-2. **Agent Type Specification**: Ensures commands are executed by appropriate AI assistants
-3. **User Approval Workflows**: All destructive operations require explicit user confirmation
-4. **Parallel Execution**: Independent git commands run in parallel for efficiency
-5. **Error Handling First**: Pre-flight checks run before any action to fail fast
-6. **Multi-Tool Format**: Same core logic in three formats — only interaction patterns differ
+2. **User Approval Workflows**: All destructive operations require explicit user confirmation
+3. **Parallel Execution**: Independent git commands and subagents run in parallel
+4. **Error Handling First**: Pre-flight checks run before any action to fail fast
+5. **Multi-Tool Format**: Same core logic in three formats — only interaction patterns differ
 
-### Dependencies
-
-This repository has no runtime dependencies. It is a documentation-only repository containing command specifications.
-
-## Usage Examples
-
-### Creating a Commit with `/commit-all`
-
-1. Make changes to your files
-2. Execute `/commit-all` command
-3. AI assistant runs pre-flight checks
-4. Review generated commit message
-5. Accept or suggest alternatives
-6. Commit is created with approval
-
-### Pushing Changes with `/push-staged`
-
-1. Stage specific files: `git add <file>`
-2. Execute `/push-staged` command
-3. AI assistant verifies staged changes
-4. Generate conventional commit message
-5. Get user approval
-6. Commit and push to remote
-
-### Creating a PR with `/create-pr`
-
-1. Execute `/create-pr` command
-2. AI assistant runs pre-flight checks and stages all changes
-3. Review generated commit message
-4. Accept or suggest alternatives
-5. Changes are committed and pushed
-6. AI generates PR title and body from changes
-7. If `gh` is available, creates PR via CLI; otherwise opens browser for manual creation
-8. Get confirmation with PR URL
-
-### Planning a Feature with `/plan-interview`
-
-1. Execute `/plan-interview <feature-description>`
-2. AI assistant asks clarifying questions
-3. Review and confirm final spec outline
-4. Git branch is created (if in git repo)
-5. Spec is written to `plan.md`
-
-### Generating Social Content with `/generate-social-content`
-
-1. Execute `/generate-social-content <topic>` (or without args to be prompted)
-2. Select your timezone for best-time-to-post recommendations
-3. Multi-select target platforms (LinkedIn, Twitter/X, Instagram, Facebook, TikTok, Reddit, YouTube)
-4. Select content goal (Awareness, Engagement, Leads, Launch, Education, Community)
-5. AI assistant launches parallel subagents — one per platform
-6. Each subagent generates platform-specific content in its own `.md` file
-7. A `summary.md` with posting calendar is generated
-
-**Output:** `social-content/<topic-slug>/` containing per-platform content files and a posting calendar.
-
-[See workflow diagram](docs/generate-social-content-diagram.md) for the full flow and subagent architecture.
-
-### Generating Onboarding Tour with `/generate-onboarding`
-
-1. Execute `/generate-onboarding` (or with a focus area: `/generate-onboarding authentication flow`)
-2. AI assistant scans project structure and identifies languages, frameworks, entry points
-3. Launches 5 parallel research subagents (execution flow, data flow, config, patterns, dependencies)
-4. Each subagent traces its area and returns findings with file:line references
-5. Tour builder generates a self-contained HTML file with Mermaid diagrams
-
-**Output:** `docs/onboarding.html` (or `docs/onboarding-<focus>.html` if a focus area is provided, e.g., `docs/onboarding-authentication-flow.html`) — open in any browser for a guided code tour with syntax-highlighted code and diagrams.
-
-[See workflow diagram](docs/generate-onboarding-workflow.md) for the full pipeline.
-
-### Mapping the Agent Harness with `/harness-map`
-
-1. Execute `/harness-map`
-2. AI assistant reads the rendering template at `templates/harness-map.html`
-3. Enumerates the live session harness: core tools, deferred tools, MCP servers, agent types, and all skills grouped by source
-4. Injects the fresh data into the template (rendering code is never rewritten)
-5. Saves the result and opens it (Claude Code additionally publishes it as an Artifact)
-
-**Output:** `docs/harness-map.html` — an interactive force-directed graph with search, zoom, collapse/expand, and dark/light themes.
-
-[See workflow diagram](docs/harness-map-workflow.md) for the full flow and template architecture.
-
-### Shipping Work with `/ship`
-
-1. Execute `/ship` (optionally with notes: `/ship base develop` or a PR title)
-2. AI assistant branches off protected branches, commits pending work with a Conventional Commits message, and pushes
-3. Opens a PR via `gh` (or reuses an existing one) and reports the URL immediately
-4. Babysits the PR: polls checks and review comments, fixes failures, pushes updates
-5. Triages every review comment: crucial issues (bugs, security, data loss) get fixed; non-crucial nits get a brief reply explaining the skip — AI reviewers (CodeRabbit, Copilot, Gemini) are treated as suggestions, not orders
-6. Replies to and resolves every review thread; dismisses bot reviews stuck in "Changes requested" (never a human's)
-7. Merges automatically (`--squash --delete-branch`) once checks are green and all threads are resolved
-
-**Autonomous by design** — it only stops for genuine blockers: unresolvable merge conflicts, ambiguous test failures, or review feedback needing a human decision.
-
-[See workflow diagram](docs/ship-workflow.md) for the full flow and review comment triage.
-
-## Best Practices
-
-### Writing New Commands
-
-1. **Always include pre-flight checks**: Verify git config, branch status, and remote availability
-2. **Use user approval workflows**: Never perform destructive operations without confirmation
-3. **Follow conventional commits**: Use standardized commit message format
-4. **Handle errors gracefully**: Provide clear error messages and suggestions
-5. **Use parallel execution**: Run independent commands simultaneously
-6. **Maintain all three formats**: Every command must exist in OpenCode, Claude Code, and Kilo Code directories with identical workflow logic
-
-### Branch Naming
-
-- Feature branches: `feat/<short-description>`
-- Use lowercase, hyphens only
-- Keep descriptions to 3-5 words
-
-### Protected Branches
-
-The following branches are protected and trigger warnings:
-- `main`
-- `master`
-- `develop`
-- `release/*`
-
-## Common Pitfalls to Avoid
-
-### Git Configuration
-
-**Don't**: Skip git config verification
-**Do**: Always verify `user.name` and `user.email` before operations
-
-### Commit Message Format
-
-**Don't**: Use vague messages like "fixed stuff" or "update"
-**Do**: Follow conventional commit format with clear subject lines
-
-### Branch Protection
-
-**Don't**: Commit directly to protected branches
-**Do**: Warn users and require explicit confirmation
-
-### User Interaction
-
-**Don't**: Skip user approval for destructive operations
-**Do**: Always present changes for review before executing
-
-### Error Handling
-
-**Don't**: Ignore errors or provide unhelpful messages
-**Do**: Provide clear error messages with suggestions for resolution
+This repository has no runtime dependencies. It is documentation only.
 
 ## Validation
-
-### Markdown Validation
 
 ```bash
 # Check OpenCode frontmatter (requires description + agent)
@@ -645,37 +395,9 @@ done
 yq eval '.' .opencode/commands/*.md .claude/commands/*.md 2>/dev/null || echo "yq not available"
 ```
 
-### Git Validation
-
-```bash
-# Verify git configuration
-git config user.name && git config user.email
-
-# Check current branch
-git branch --show-current
-
-# Verify remote exists
-git remote get-url origin
-```
-
 ## Contributing
 
-To add a new command:
-
-1. Create the OpenCode format in `.opencode/commands/<action>-<target>.md` (kebab-case)
-2. Include YAML frontmatter with `description` and `agent`
-3. Follow the established workflow format with Pre-flight Checks, Workflow, Error Handling
-4. Add user approval steps with the `question` tool
-5. Create the Claude Code format in `.claude/commands/<action>-<target>.md`:
-   - Replace `agent` with `allowed-tools` in frontmatter
-   - Replace `question` tool with inline chat prompts
-   - Use `Bash(cmd)` syntax for commands
-6. Create the Kilo Code format in `.kilocode/workflows/<action>-<target>.md`:
-   - No frontmatter — start with a title heading
-   - Replace `question` tool with `ask_user`
-   - Use `execute_command` for bash commands
-7. Test the workflow manually across all three tools
-8. Verify consistency with existing command files
+To add or edit a command, follow the "Adding New Commands" steps in [AGENTS.md](AGENTS.md). Every command must exist in all three formats with identical workflow logic.
 
 ## License
 
