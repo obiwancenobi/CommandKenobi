@@ -1,0 +1,180 @@
+<!-- Animated promo storyboard, 1080x1920. Open in Chrome to preview:
+       open store/src/promo.html     Space = play/pause, ←/→ = scene, ?clean=1 hides controls, ?scene=N freezes one.
+     Render: <skill>/scripts/build-promo.sh store/src/promo.html store/promo/out.mp4
+     Edit the CONTENT block at the bottom (BRAND, SHOTS, WALL) and the hook scene. Keep total under 30s. -->
+<meta charset="utf-8">
+<title>Promo</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  html, body { width: 100%; height: 100%; background: var(--ink); overflow: hidden; }
+  #stage { width: 1080px; height: 1920px; position: absolute; left: 50%; top: 50%; transform-origin: center; background: var(--bg); overflow: hidden; }
+  .scene { position: absolute; inset: 0; display: none; } .scene.on { display: block; } .layer { position: relative; z-index: 5; }
+
+  @keyframes popIn   { from { opacity:0; transform: translateY(60px) scale(.9) } to { opacity:1; transform:none } }
+  @keyframes driftIn { from { opacity:0; transform: translateX(140px) rotate(6deg) } to { opacity:1; transform:none } }
+  @keyframes stamp   { from { opacity:0; transform: scale(2.2) rotate(-14deg) } to { opacity:1; transform: scale(1) rotate(-3deg) } }
+  @keyframes wipe    { from { clip-path: inset(0 100% 0 0) } to { clip-path: inset(0 0 0 0) } }
+  .scene.on .anim { animation: popIn .55s cubic-bezier(.2,1.3,.4,1) both; }
+  .scene.on .anim.drift { animation-name: driftIn }
+  .scene.on .stamp { animation: stamp .45s cubic-bezier(.2,1.2,.4,1) both; }
+  .scene.on .wipe { animation: wipe .7s ease both; }
+  .scene.on .chip { animation: popIn .4s cubic-bezier(.2,1.3,.4,1) both; animation-delay: var(--d); }
+
+  /* hook: a number that climbs. Swap for whatever the product's "one number" is. */
+  #hook.on { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  #hook h2 { font-size: 54px; }
+  #count { font-size: 360px; font-weight: 800; line-height: 1; color: var(--c4); -webkit-text-stroke: 12px var(--ink); paint-order: stroke fill; margin-top: 10px; }
+  #count small { font-size: 120px; -webkit-text-stroke: 6px var(--ink); }
+  #hook .sticker { font-size: 52px; margin-top: 70px; }
+
+  .shot .caption { text-align: center; padding: 100px 60px 0; }
+  .shot .caption h1 { font-size: 92px; } .shot .caption h2 { font-size: 36px; margin-top: 20px; }
+  .shot .device { position: absolute; left: 50%; top: 420px; transform: translateX(-50%); z-index: 5; }
+  .shot .device img { width: 640px; display: block; }
+  .shot .tagpill { position: absolute; z-index: 6; font-size: 40px; padding: 16px 32px; border-radius: 999px; font-weight: 800; letter-spacing: 1px;
+                   border: 5px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); transform: rotate(-4deg); }
+
+  #wall.on { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  #wall h1 { font-size: 112px; } #wall h2 { font-size: 40px; margin-top: 18px; }
+  .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 22px; padding: 70px 80px 0; }
+  .chip { font-size: 40px; font-weight: 800; padding: 16px 34px; border-radius: 999px; border: 5px solid var(--ink); box-shadow: 7px 7px 0 var(--ink); color: var(--ink); }
+
+  #claim.on { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  #claim h1 { font-size: 160px; } #claim h2 { font-size: 42px; margin-top: 40px; } #claim .sticker { font-size: 48px; margin-top: 80px; }
+
+  #end.on { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  #end img { width: 380px; height: 380px; border-radius: 88px; border: 10px solid var(--ink); box-shadow: 16px 16px 0 var(--ink); }
+  #end h1 { font-size: 132px; margin-top: 80px; } #end h2 { font-size: 40px; margin-top: 26px; }
+  #end .meta { margin-top: 56px; font-size: 32px; font-weight: 800; letter-spacing: 2px; } #end .sticker { font-size: 44px; margin-top: 80px; }
+
+  .still .anim, .still .chip, .still .wipe, .still .tagpill, .still .stamp { animation: none !important; opacity: 1 !important; clip-path: none !important; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 16px; background: #0e0d15; color: #cfcde0; font: 13px ui-monospace, monospace; display: flex; gap: 14px; align-items: center; z-index: 99 }
+  #bar.hide { display: none } #bar progress { flex: 1; height: 6px } #bar b { color: var(--head) }
+</style>
+
+<div id="stage">
+  <section class="scene" id="hook" data-dur="3.2">
+    <div class="halftone"></div>
+    <div class="blob c3" style="width:520px;height:520px;left:-180px;top:160px"></div>
+    <div class="blob c2" style="width:440px;height:440px;right:-140px;bottom:240px"></div>
+    <div class="burst c1" style="width:300px;height:300px;right:80px;top:200px"></div>
+    <div class="layer">
+      <h2 class="anim" id="hook-q"></h2>
+      <div id="count" class="anim" style="animation-delay:.1s">0</div>
+      <span class="sticker hot stamp" id="hook-stamp" style="animation-delay:2.1s"></span>
+    </div>
+  </section>
+  <!-- screenshot beats are generated from SHOTS and inserted before #wall -->
+  <section class="scene" id="wall" data-dur="3.4">
+    <div class="halftone"></div>
+    <div class="blob c1" style="width:460px;height:460px;left:-160px;top:1250px"></div>
+    <div class="blob c2" style="width:360px;height:360px;right:-120px;top:180px"></div>
+    <div class="layer"><h1 id="wall-h1"></h1><h2 id="wall-h2"></h2><div class="grid" id="chips"></div></div>
+  </section>
+  <section class="scene" id="claim" data-dur="2.4">
+    <div class="halftone"></div>
+    <div class="blob c3" style="width:520px;height:520px;left:-170px;top:1150px"></div>
+    <div class="burst c4" style="width:360px;height:360px;right:-40px;top:230px"></div>
+    <div class="layer">
+      <h1 class="wipe" id="claim-h1"></h1>
+      <h2 class="anim" id="claim-h2" style="animation-delay:.5s"></h2>
+      <span class="sticker anim" id="claim-chip" style="animation-delay:.7s"></span>
+    </div>
+  </section>
+  <section class="scene" id="end" data-dur="3.4">
+    <div class="halftone"></div>
+    <div class="blob c3" style="width:520px;height:520px;left:-160px;top:160px"></div>
+    <div class="blob c1" style="width:420px;height:420px;right:-120px;bottom:220px"></div>
+    <div class="burst c4" style="width:300px;height:300px;right:70px;top:270px"></div>
+    <div class="layer">
+      <img class="anim" src="icon.png">
+      <h1 class="anim" id="end-h1" style="animation-delay:.12s"></h1>
+      <h2 class="anim" id="end-h2" style="animation-delay:.2s"></h2>
+      <div class="meta anim" id="end-meta" style="animation-delay:.28s"></div>
+      <span class="sticker anim" id="end-chip" style="animation-delay:.4s"></span>
+    </div>
+  </section>
+</div>
+<div id="bar"><span><b id="lbl">—</b></span><progress id="prog" value="0" max="1"></progress><span id="clock"></span><span>space=play ←/→=scene</span></div>
+
+<script>
+// ===================== CONTENT: edit this block =====================
+const BRAND = {
+  hookQuestion: 'How rotted is your brain?',   // line above the climbing number
+  hookNumber: 74, hookSuffix: '/100',          // the number climbs 0 → hookNumber over COUNT_MS
+  hookStamp: 'HIGH ROT',                       // sticker that lands after the climb ('' to hide)
+  wallTitle: 'The usual|suspects', wallSub: 'One line under the wall',
+  claimTitle: '100%|ON-DEVICE', claimSub: 'No account. No cloud.', claimChip: 'FREE FOREVER',
+  endTitle: 'APP NAME', endSub: 'One-line tagline.', endMeta: 'FEATURE · FEATURE · FEATURE', endChip: 'FREE ON GOOGLE PLAY',
+};
+// [raw capture in ../raw/en/, title (| = line break), sub, pill text, pill bg, pill fg]
+// Pills are read without context: scope every claim ("AD-FREE FOCUS", not "NO ADS") unless true app-wide.
+const SHOTS = [
+  ['home.png', 'Headline|two lines', 'Sub-claim', 'PILL', 'var(--c4)', 'var(--chip-ink)'],
+  ['x.png',    'Headline',           'Sub-claim', 'PILL', 'var(--head)', 'var(--ink)'],
+];
+const SHOT_DUR = 1.9;
+const WALL = [['Item', 'c1'], ['Item', 'c2'], ['Item', 'c3'], ['Item', 'c4']];   // chips: [label, colour class]
+const COUNT_MS = 1900;
+// ====================================================================
+
+const $ = id => document.getElementById(id);
+const br = s => s.replace(/\|/g, '<br>');
+$('hook-q').textContent = BRAND.hookQuestion; $('hook-stamp').textContent = BRAND.hookStamp;
+if (!BRAND.hookStamp) $('hook-stamp').style.display = 'none';
+$('wall-h1').innerHTML = br(BRAND.wallTitle); $('wall-h2').textContent = BRAND.wallSub;
+$('claim-h1').innerHTML = br(BRAND.claimTitle); $('claim-h2').textContent = BRAND.claimSub; $('claim-chip').textContent = BRAND.claimChip;
+$('end-h1').textContent = BRAND.endTitle; $('end-h2').textContent = BRAND.endSub; $('end-meta').textContent = BRAND.endMeta; $('end-chip').textContent = BRAND.endChip;
+
+const stage = $('stage'), wall = $('wall');
+SHOTS.forEach(([img, title, sub, pill, bg, fg], i) => {
+  const s = document.createElement('section'); s.className = 'scene shot'; s.dataset.dur = SHOT_DUR;
+  const side = i % 2 ? 'right:60px' : 'left:60px';
+  s.innerHTML = `<div class="halftone"></div>
+    <div class="blob c1" style="width:420px;height:420px;left:-150px;top:560px"></div>
+    <div class="blob c2" style="width:360px;height:360px;right:-130px;top:1150px"></div>
+    <div class="burst c4" style="width:280px;height:280px;right:50px;top:380px"></div>
+    <div class="layer caption"><h1 class="anim">${br(title)}</h1><h2 class="anim" style="animation-delay:.1s">${sub}</h2></div>
+    <div class="device anim drift" style="animation-delay:.18s"><img src="../raw/en/${img}"></div>
+    <span class="tagpill stamp" style="${side};top:1250px;background:${bg};color:${fg};animation-delay:.7s">${pill}</span>`;
+  stage.insertBefore(s, wall);
+});
+WALL.forEach(([name, cls], i) => { const c = document.createElement('span'); c.className = 'chip ' + cls; c.textContent = name; c.style.setProperty('--d', (0.25 + i * 0.12).toFixed(2) + 's'); $('chips').appendChild(c); });
+function setCount(n) { $('count').innerHTML = n + '<small>' + BRAND.hookSuffix + '</small>'; }
+const countAt = ms => Math.min(BRAND.hookNumber, Math.round(ms / COUNT_MS * BRAND.hookNumber));
+
+// ---- timeline (do not edit) ----
+const scenes = [...document.querySelectorAll('.scene')], durs = scenes.map(s => parseFloat(s.dataset.dur)), total = durs.reduce((a, b) => a + b, 0);
+let t = 0, playing = true, last = performance.now(), cur = -1, sceneStart = 0, renderMode = false;
+const sceneAt = time => { let a = 0; for (let i = 0; i < durs.length; i++) { a += durs[i]; if (time < a) return i; } return durs.length - 1; };
+function show(i) {
+  if (i === cur) return; cur = i; sceneStart = durs.slice(0, i).reduce((a, b) => a + b, 0);
+  scenes.forEach((s, j) => s.classList.toggle('on', j === i));
+  // Restart via Web Animations API: resetting style.animation would wipe inline animation-delay.
+  scenes[i].getAnimations({ subtree: true }).forEach(a => { a.cancel(); a.play(); });
+}
+function seekScene(d) { let a = 0; for (let i = 0; i < cur + d && i < durs.length; i++) a += durs[i]; t = Math.max(0, Math.min(total - .01, a)); cur = -1; }
+window.seekTo = time => {   // deterministic seek used by record.mjs
+  renderMode = true; playing = false; t = time; const i = sceneAt(time); cur = -1; show(i);
+  const local = (time - sceneStart) * 1000;
+  document.getAnimations().forEach(a => { a.pause(); try { a.currentTime = local; } catch (e) {} });
+  if (scenes[i].id === 'hook') setCount(countAt(local));
+  return total;
+};
+window.promoDuration = () => total;
+function frame(now) {
+  if (renderMode) { requestAnimationFrame(frame); return; }
+  const dt = (now - last) / 1000; last = now; if (playing) { t += dt; if (t >= total) t = 0; }
+  show(sceneAt(t)); if (scenes[cur].id === 'hook') setCount(countAt((t - sceneStart) * 1000));
+  $('prog').value = t / total; $('clock').textContent = t.toFixed(1) + 's / ' + total.toFixed(1) + 's' + (total > 30 ? '  ⚠ OVER 30s' : '');
+  $('lbl').textContent = (scenes[cur].id || 'shot') + ' [' + (cur + 1) + '/' + scenes.length + ']'; requestAnimationFrame(frame);
+}
+addEventListener('keydown', e => { if (e.code === 'Space') { playing = !playing; e.preventDefault(); } if (e.code === 'ArrowRight') seekScene(1); if (e.code === 'ArrowLeft') seekScene(-1); });
+const fit = () => { const k = Math.min(innerWidth / 1080, (innerHeight - 40) / 1920); stage.style.transform = `translate(-50%,-50%) scale(${k})`; };
+addEventListener('resize', fit); fit();
+const qs = new URLSearchParams(location.search);
+if (qs.get('clean')) $('bar').classList.add('hide');
+if (qs.get('still')) { document.body.classList.add('still'); setCount(BRAND.hookNumber); }
+if (qs.get('scene')) { playing = false; seekScene(parseInt(qs.get('scene')) - 1 - cur); }
+requestAnimationFrame(frame);
+</script>

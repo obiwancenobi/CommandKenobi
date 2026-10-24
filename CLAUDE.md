@@ -24,7 +24,7 @@ CommandKenobi/
 │       ├── harness-map.md
 │       └── ship.md
 ├── .claude/
-│   └── commands/              # Claude Code format (you are here)
+│   ├── commands/              # Claude Code format (you are here)
 │       ├── commit-all.md
 │       ├── commit-staged.md
 │       ├── create-pr.md
@@ -36,6 +36,8 @@ CommandKenobi/
 │       ├── generate-onboarding.md
 │       ├── harness-map.md
 │       └── ship.md
+│   └── skills/                # Claude Code / OpenCode skills (folder + SKILL.md)
+│       └── app-launch-kit/    # Google Play launch kit: listing, screenshots, promo video, checklist
 ├── .kilocode/
 │   └── workflows/             # Kilo Code format
 │       ├── commit-all.md

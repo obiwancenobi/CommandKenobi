@@ -1,0 +1,38 @@
+/* @import must stay first. Change the family here AND --font below. */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap');
+/* Store asset tokens. Edit :root only; mirror the app's theme file. */
+:root {
+  --font: "Baloo 2", "Trebuchet MS", sans-serif;     /* Google Font name below must match */
+  --bg: #FBF3E4;        /* page background */
+  --ink: #17130E;       /* outlines, shadows, body text */
+  --head: #F7D046;      /* headline fill (outlined in --ink) */
+  --sub: #17130E;       /* subtitle text */
+  --c1: #F191AC;        /* decorative shapes: four brand colours */
+  --c2: #8FD8CB;
+  --c3: #9C7DC9;
+  --c4: #EF6B3A;
+  --chip: #2E9C8F;      /* sticker/CTA pill fill */
+  --chip-ink: #FBF3E4;  /* sticker text */
+  --stroke: 9px;        /* headline outline width; 0 for a flat look */
+  --shadow: 8px;        /* hard offset shadow; 0 for flat */
+  --radius: 48px;       /* device frame corner */
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow: hidden; }
+body { font-family: var(--font); position: relative; background: var(--bg); color: var(--ink); }
+/* Background texture: halftone dots. Swap the gradient for grid/confetti/none. */
+.halftone { position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: .08;
+  background: radial-gradient(var(--ink) 3px, transparent 3.5px) 0 0 / 34px 34px; }
+h1 { font-weight: 800; line-height: 1; letter-spacing: -1px; color: var(--head);
+     -webkit-text-stroke: var(--stroke) var(--ink); paint-order: stroke fill; }
+h2 { font-weight: 700; color: var(--sub); line-height: 1.2; }
+.sticker { display: inline-block; padding: 16px 34px; border-radius: 999px; font-weight: 800; letter-spacing: 1px;
+  background: var(--chip); color: var(--chip-ink); border: 5px solid var(--ink);
+  box-shadow: var(--shadow) var(--shadow) 0 var(--ink); transform: rotate(-3deg); }
+.sticker.alt { background: var(--head); color: var(--ink); }
+.sticker.hot { background: var(--c4); color: var(--chip-ink); }
+.blob { position: absolute; border-radius: 50%; border: 6px solid var(--ink); box-shadow: 10px 10px 0 var(--ink); z-index: 1; }
+.burst { position: absolute; z-index: 1; clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
+.c1 { background: var(--c1) } .c2 { background: var(--c2) } .c3 { background: var(--c3) } .c4 { background: var(--c4) }
+.device { border: 12px solid var(--ink); border-radius: var(--radius); overflow: hidden; background: var(--ink);
+  box-shadow: calc(var(--shadow) * 2.2) calc(var(--shadow) * 2.2) 0 var(--ink); }

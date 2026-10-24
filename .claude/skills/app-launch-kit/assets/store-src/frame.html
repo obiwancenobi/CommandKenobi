@@ -1,0 +1,25 @@
+<!-- Screenshot card: caption + framed device capture. Driven by render.sh query params. -->
+<link rel="stylesheet" href="shared.css">
+<style>
+  html, body { width: 1080px; height: 1920px; }
+  body { display: flex; flex-direction: column; align-items: center; }
+  .caption { position: relative; z-index: 5; text-align: center; padding: 100px 60px 0; }
+  .caption h1 { font-size: 92px; } .caption h2 { font-size: 36px; margin-top: 22px; }
+  .device { position: relative; z-index: 5; margin-top: 58px; }
+  .device img { width: 640px; display: block; }
+  .b1 { width: 420px; height: 420px; left: -150px; top: 560px; }
+  .b2 { width: 360px; height: 360px; right: -130px; top: 1150px; }
+  .b3 { width: 260px; height: 260px; right: 40px; top: 400px; }
+  .s1 { width: 300px; height: 300px; left: 40px; top: 1420px; }
+</style>
+<div class="halftone"></div>
+<div class="blob c1 b1"></div><div class="blob c2 b2"></div><div class="blob c3 b3"></div><div class="burst c4 s1"></div>
+<div class="caption"><h1 id="title"></h1><h2 id="sub"></h2></div>
+<div class="device"><img id="screen" src=""></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  document.getElementById('title').innerHTML = (q.get('title') || '').replace(/\|/g, '<br>');
+  document.getElementById('sub').textContent = q.get('sub') || '';
+  document.getElementById('screen').src = q.get('img');
+  const dw = q.get('dw'); if (dw) document.getElementById('screen').style.width = dw + 'px';
+</script>

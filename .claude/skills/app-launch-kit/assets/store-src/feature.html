@@ -1,0 +1,19 @@
+<!-- Play feature graphic 1024x500. Edit the three text nodes. Icon: store/src/icon.png -->
+<link rel="stylesheet" href="shared.css">
+<style>
+  html, body { width: 1024px; height: 500px; }
+  body { display: flex; align-items: center; }
+  .icon { position: relative; z-index: 5; margin-left: 70px; width: 300px; height: 300px; border-radius: 68px; border: 8px solid var(--ink); box-shadow: 14px 14px 0 var(--ink); transform: rotate(-4deg); }
+  .text { position: relative; z-index: 5; margin-left: 70px; }
+  h1 { font-size: 104px; } h2 { font-size: 30px; margin-top: 12px; }
+  .sticker { font-size: 22px; margin-top: 28px; padding: 10px 22px; box-shadow: 6px 6px 0 var(--ink); }
+  .b1 { width: 340px; height: 340px; left: -120px; top: -110px; }
+  .b2 { width: 300px; height: 300px; right: -90px; bottom: -130px; }
+  .s1 { width: 190px; height: 190px; right: 150px; top: -50px; }
+  .border { position: absolute; inset: 12px; border: 6px solid var(--ink); border-radius: 26px; z-index: 4; }
+</style>
+<div class="halftone"></div>
+<div class="blob c1 b1"></div><div class="blob c2 b2"></div><div class="burst c4 s1"></div>
+<div class="border"></div>
+<img class="icon" src="icon.png">
+<div class="text"><h1>APP NAME</h1><h2>One-line tagline.</h2><br><span class="sticker">FEATURE · FEATURE · FEATURE</span></div>

@@ -97,6 +97,22 @@ All 11 commands are available across OpenCode, Claude Code, and Kilo Code.
 | `/harness-map` | Generate an interactive force-graph map of the current agent harness | `.opencode/` | `.claude/` | `.kilocode/` |
 | `/ship` | Create a PR, babysit checks, fix review comments, and merge when green | `.opencode/` | `.claude/` | `.kilocode/` |
 
+## Skills
+
+Skills are folders with a `SKILL.md` file plus optional `references/`, `scripts/`, and `assets/`. Claude Code and OpenCode load them from `.claude/skills/` in a project, or from `~/.claude/skills/` globally.
+
+| Skill | Description |
+|-------|-------------|
+| `app-launch-kit` | Produce the complete Google Play launch kit in one pass: store listing copy, screenshots and store cards from a real build, feature graphic and icon, a portrait promo video, a release checklist audited against the code, and launch social content. Uses `/generate-social-content` when installed. |
+
+Install globally:
+
+```bash
+cp -r /tmp/commandkenobi/.claude/skills/* ~/.claude/skills/
+```
+
+Related third-party skills that pair well with the launch kit: [`aso`](https://github.com/coreyhaines31/marketingskills/tree/main/skills/aso) and [`launch`](https://github.com/coreyhaines31/marketingskills/tree/main/skills/launch) from `coreyhaines31/marketingskills`. Install them with `npx skills add coreyhaines31/marketingskills`.
+
 ### Command File Structure
 
 #### OpenCode Format (`.opencode/commands/`)
